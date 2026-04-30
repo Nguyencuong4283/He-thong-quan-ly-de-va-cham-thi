@@ -1,4 +1,4 @@
-package Entity;
+package com.se104.backend.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

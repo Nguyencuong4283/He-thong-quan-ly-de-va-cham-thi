@@ -1,4 +1,4 @@
-package Entity;
+package com.se104.backend.entity;
 
 import jakarta.persistence.*;
 import java.util.List;
@@ -21,6 +21,12 @@ public class Exam {
     @ManyToOne
     @JoinColumn(name = "teacher_id")
     private Teacher teacher;
+
+    @OneToMany(mappedBy = "exam")
+    private List<ExamQuestion> examQuestions;
+
+    @OneToMany(mappedBy = "exam")
+    private List<Submission> submissions;
 
     public Exam() {
     }
@@ -87,5 +93,21 @@ public class Exam {
 
     public void setTeacher(Teacher teacher) {
         this.teacher = teacher;
+    }
+
+    public List<ExamQuestion> getExamQuestions() {
+        return examQuestions;
+    }
+
+    public void setExamQuestions(List<ExamQuestion> examQuestions) {
+        this.examQuestions = examQuestions;
+    }
+
+    public void setSubmissions(List<Submission> submissions) {
+        this.submissions = submissions;
+    }
+
+    public List<Submission> getSubmissions() {
+        return submissions;
     }
 }

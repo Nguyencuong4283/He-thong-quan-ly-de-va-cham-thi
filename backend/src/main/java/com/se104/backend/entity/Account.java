@@ -1,4 +1,4 @@
-package Entity;
+package com.se104.backend.entity;
 
 import jakarta.persistence.*;
 
@@ -12,7 +12,7 @@ public class Account {
     private Long accountId;
 
     @OneToOne
-    @JoinColumn(name = "teacher_id", nullable = false, unique = true)
+    @JoinColumn(name = "teacher_id", unique = true)
     private Teacher teacher;
 
     @Column(nullable = false, unique = true)

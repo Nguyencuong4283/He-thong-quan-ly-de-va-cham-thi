@@ -1,9 +1,11 @@
-package Entity;
+package com.se104.backend.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
-@Table(name = "class")
+@Table(name = "class_room")
 public class Classroom {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,8 +15,11 @@ public class Classroom {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "teacher_id", nullable = false)
+    @JoinColumn(name = "teacher_id")
     private Teacher teacher;
+
+    @OneToMany(mappedBy = "classroom")
+    private List<Student> students;
 
     public Classroom() {
     }
@@ -41,5 +46,13 @@ public class Classroom {
 
     public Teacher getTeacher() {
         return teacher;
+    }
+
+    public List<Student> getStudents() {
+        return students;
+    }
+
+    public void setStudents(List<Student> students) {
+        this.students = students;
     }
 }
