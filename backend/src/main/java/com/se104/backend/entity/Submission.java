@@ -16,7 +16,7 @@ public class Submission {
 
     private Float score;
     private String status;
-    private LocalDateTime submitted_at;
+    private LocalDateTime submittedAt;
 
     @ManyToOne
     @JoinColumn(name = "student_id")
@@ -45,8 +45,8 @@ public class Submission {
         this.status = status;
     }
 
-    public void setSubmitted_at(LocalDateTime submitted_at) {
-        this.submitted_at = submitted_at;
+    public void setSubmittedAt(LocalDateTime submittedAt) {
+        this.submittedAt = submittedAt;
     }
 
     public void setStudent(Student student) {
@@ -73,8 +73,8 @@ public class Submission {
         return status;
     }
 
-    public LocalDateTime getSubmitted_at() {
-        return submitted_at;
+    public LocalDateTime getSubmittedAt() {
+        return submittedAt;
     }
 
     public Student getStudent() {
