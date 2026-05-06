@@ -25,7 +25,7 @@ export default function useStatcard() {
                 setTotalStats(prev => ({ ...prev, loading: false, error: true }));
                 setCompletedStats(prev => ({ ...prev, loading: false, error: true }));
                 setDraftStats(prev => ({ ...prev, loading: false, error: true }));
-                   setMarkedStats(prev => ({ ...prev, loading: false, error: true }));
+                setMarkedStats(prev => ({ ...prev, loading: false, error: true }));
             }
         };
         loadStats();
