@@ -2,6 +2,7 @@ import Sidebar from "../components/Sidebar";
 import StatCard from "../components/StatCard";
 import { useState, useEffect } from "react";
 import UseStatCard from "../hooks/useStatcard";
+import ReportCard from "../components/ReportCard";
 
 function Dashboard() {
     const { totalStats, completedStats, draftStats } = UseStatCard();
@@ -31,10 +32,26 @@ function Dashboard() {
                         <StatCard
                             title="Đề thi đang soạn"
                             value={draftStats.total}
-                            subtitle="Đề thi chưa hoàn thành"
+                            subtitle="Cần hoàn thiện"
                             loading={draftStats.loading}
                             error={draftStats.error}
                         />
+                        <StatCard
+                            title="Đang chấm"
+                            value={draftStats.total}
+                            subtitle="Chờ xử lý"
+                            loading={draftStats.loading}
+                            error={draftStats.error}
+                        />
+                    </div>
+                    <p className="text-muted">Thống kê</p>
+                    <div className="row">
+                        <ReportCard title="Số lượng đề thi theo tháng" 
+                            chartData={[
+                                { name: 'T1', exams: 30 },
+                                { name: 'T2', exams: 45 },
+                                { name: 'T3', exams: 60 }
+                        ]} />
                     </div>
                 </main>
             </div>

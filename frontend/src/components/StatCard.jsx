@@ -1,7 +1,7 @@
 function StatCard({ title, value, subtitle, loading, error })
 {
     return (
-        <div className="col-md-4">
+        <div className="col-md-3">
             <div className="card p-3 border-0 shadow-sm">
                 <h6 className="text-secondary">{title}</h6>
                     {loading ? (
