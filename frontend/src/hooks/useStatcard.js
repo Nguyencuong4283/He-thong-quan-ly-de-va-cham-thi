@@ -5,6 +5,7 @@ export default function useStatcard() {
     const [totalStats, setTotalStats] = useState({ total: 0, growth: 0, loading: true, error: false });
     const [completedStats, setCompletedStats] = useState({ total: 0, growth: 0, loading: true, error: false });
     const [draftStats, setDraftStats] = useState({ total: 0, growth: 0, loading: true, error: false });
+    const [markedStats, setMarkedStats] = useState({ total: 0, growth: 0, loading: true, error: false });] 
     useEffect(() => {
         const loadStats = async () => {
             const token = localStorage.getItem('token');
@@ -19,13 +20,15 @@ export default function useStatcard() {
                                     growth: 0, loading: false, error: false });
                 const draftResponse = await getDraftExams(token);
                 setDraftStats({ total: draftResponse.pagination.total, growth: 0, loading: false, error: false });
+                setMarkedStats({ total: totalCount - completedTotal - draftResponse.pagination.total, growth: 0, loading: false, error: false });
             } catch (error) {
                 setTotalStats(prev => ({ ...prev, loading: false, error: true }));
                 setCompletedStats(prev => ({ ...prev, loading: false, error: true }));
                 setDraftStats(prev => ({ ...prev, loading: false, error: true }));
+                   setMarkedStats(prev => ({ ...prev, loading: false, error: true }));
             }
         };
         loadStats();
     }, []);
-    return { totalStats, completedStats, draftStats };
+    return { totalStats, completedStats, draftStats,  markedStats  };
 }
