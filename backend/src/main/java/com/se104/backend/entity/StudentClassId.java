@@ -10,11 +10,11 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExamQuestionId implements Serializable {
+public class StudentClassId implements Serializable {
 
-    @Column(name = "exam_id", nullable = false)
-    private String examId;
+    @Column(name = "student_id", nullable = false)
+    private String studentId;
 
-    @Column(name = "question_id", nullable = false)
-    private Integer questionId;
+    @Column(name = "class_id", nullable = false)
+    private String classId;
 }

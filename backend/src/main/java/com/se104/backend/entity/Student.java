@@ -1,94 +1,20 @@
 package com.se104.backend.entity;
 
-
 import jakarta.persistence.*;
-
-import java.util.List;
+import lombok.*;
 
 @Entity
-@Table(name = "student")
+@Table(name = "STUDENT")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Student {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "student_id")
-    private Long studentId;
+    @Column(name = "student_id", nullable = false)
+    private String studentId;
 
-    private String mssv;
-    private String name;
-    private String email;
-    private String phone;
-
-    @ManyToOne
-    @JoinColumn(name = "class_id")
-    private Classroom classroom;
-
-    @OneToMany(mappedBy = "student")
-    private List<Submission> submissions;
-
-    public Student() {
-    }
-
-    public void setStudentId(Long studentId) {
-        this.studentId = studentId;
-    }
-
-    public void setMssv(String mssv) {
-        this.mssv = mssv;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void setClassRoom(Classroom classroom) {
-        this.classroom = classroom;
-    }
-
-    public Long getStudentId() {
-        return studentId;
-    }
-
-    public String getMssv() {
-        return mssv;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public Classroom getClassRoom() {
-        return classroom;
-    }
-
-    public Classroom getClassroom() {
-        return classroom;
-    }
-
-    public void setClassroom(Classroom classroom) {
-        this.classroom = classroom;
-    }
-
-    public List<Submission> getSubmissions() {
-        return submissions;
-    }
-
-    public void setSubmissions(List<Submission> submissions) {
-        this.submissions = submissions;
-    }
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
 }

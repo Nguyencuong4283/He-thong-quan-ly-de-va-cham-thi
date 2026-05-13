@@ -1,99 +1,36 @@
 package com.se104.backend.entity;
 
 import jakarta.persistence.*;
-import java.util.List;
+import lombok.*;
 
 @Entity
-@Table(name = "question")
+@Table(name = "QUESTION")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Question {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "question_id")
-    private Long questionId;
+    private Integer questionId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
-    private String type;
+
+    // Lời giải / đáp án tham khảo để giảng viên đối chiếu khi chấm thi
+    @Column(name = "answer", nullable = false, columnDefinition = "TEXT")
+    private String answer;
+
+    @Column(name = "difficulty", nullable = false)
     private String difficulty;
-    private String subject;
 
-    @Column(columnDefinition = "TEXT")
-    private String answers;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id", nullable = false)
+    private Subject subject;
 
-    @Column(name ="correct_answer", columnDefinition = "TEXT")
-    private String correctAnswer;
-
-    @OneToMany(mappedBy = "question")
-    private List<ExamQuestion> examQuestions;
-
-    public Question() {
-    }
-
-    public Long getQuestionId() {
-        return questionId;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getDifficulty() {
-        return difficulty;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public String getAnswers() {
-        return answers;
-    }
-
-    public String getCorrect_answer() {
-        return correctAnswer;
-    }
-
-    public void setQuestionId(Long questionId) {
-        this.questionId = questionId;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public void setAnswers(String answers) {
-        this.answers = answers;
-    }
-
-    public void setCorrectAnswer(String correctAnswer) {
-        this.correctAnswer = correctAnswer;
-    }
-
-    public String getCorrectAnswer() {
-        return correctAnswer;
-    }
-
-    public List<ExamQuestion> getExamQuestions() {
-        return examQuestions;
-    }
-
-    public void setExamQuestions(List<ExamQuestion> examQuestions) {
-        this.examQuestions = examQuestions;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private Teacher teacher;
 }

@@ -1,37 +1,29 @@
 package com.se104.backend.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
-@Table(name = "exam_question")
+@Table(name = "EXAM_QUESTION")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ExamQuestion {
-    @EmbeddedId
-    private ExamQuestionId examQuestionId = new ExamQuestionId();
 
-    @ManyToOne
+    @EmbeddedId
+    private ExamQuestionId id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("examId")
     @JoinColumn(name = "exam_id")
     private Exam exam;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("questionId")
     @JoinColumn(name = "question_id")
     private Question question;
 
-    private Float points;
-
-    public ExamQuestion() {
-    }
-
-    public ExamQuestionId getExamQuestionId() { return examQuestionId; }
-    public void setExamQuestionId(ExamQuestionId examQuestionId) { this.examQuestionId = examQuestionId; }
-
-    public Exam getExam() { return exam; }
-    public void setExam(Exam exam) { this.exam = exam; }
-
-    public Question getQuestion() { return question; }
-    public void setQuestion(Question question) { this.question = question; }
-
-    public Float getPoints() { return points; }
-    public void setPoints(Float points) { this.points = points; }
+    @Column(name = "question_order", nullable = false)
+    private Integer questionOrder;
 }
