@@ -3,6 +3,8 @@ package com.se104.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "QUESTION")
 @Data
@@ -33,4 +35,7 @@ public class Question {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
+
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ExamQuestion> examQuestions;
 }

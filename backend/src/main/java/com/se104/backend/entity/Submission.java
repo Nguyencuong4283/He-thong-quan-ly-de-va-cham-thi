@@ -26,6 +26,9 @@ public class Submission {
     @Column(name = "note")
     private String note;
 
+    @Column(name = "status", nullable = false)
+    private boolean status = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;

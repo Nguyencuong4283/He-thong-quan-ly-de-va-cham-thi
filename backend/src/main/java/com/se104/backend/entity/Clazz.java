@@ -17,4 +17,16 @@ public class Clazz {
 
     @Column(name = "name", nullable = false)
     private String name;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id", nullable = false)
+    private Subject subject;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="teacher_id", nullable = false)
+    private Teacher teacher;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name ="exam_id")
+    private Exam exam;
 }

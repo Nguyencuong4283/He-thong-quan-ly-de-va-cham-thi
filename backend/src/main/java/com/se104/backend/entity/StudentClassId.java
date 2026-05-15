@@ -12,9 +12,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class StudentClassId implements Serializable {
 
-    @Column(name = "student_id", nullable = false)
+    @Column(nullable = false)
     private String studentId;
 
-    @Column(name = "class_id", nullable = false)
+    @Column(nullable = false)
     private String classId;
 }

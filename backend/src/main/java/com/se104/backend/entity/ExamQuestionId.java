@@ -12,9 +12,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ExamQuestionId implements Serializable {
 
-    @Column(name = "exam_id", nullable = false)
+    @Column(nullable = false)
     private String examId;
 
-    @Column(name = "question_id", nullable = false)
+    @Column(nullable = false)
     private Integer questionId;
 }

@@ -3,6 +3,8 @@ package com.se104.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "TEACHER")
 @Data
@@ -20,4 +22,13 @@ public class Teacher {
 
     @Column(name = "password", nullable = false)
     private String password;
+
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TeacherSubject> teacherSubjects;
+
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Exam> exams;
+
+    @OneToMany(mappedBy = "teacher", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Clazz> clazzes;
 }

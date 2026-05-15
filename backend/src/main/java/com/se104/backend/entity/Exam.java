@@ -3,7 +3,7 @@ package com.se104.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "EXAM")
@@ -23,12 +23,11 @@ public class Exam {
     @Column(name = "year")
     private Integer year;
 
-    // CHECK: duration BETWEEN 30 AND 180  (enforce ở tầng app)
+    /**
+     * CHECK: duration BETWEEN 30 AND 180
+     */
     @Column(name = "duration", nullable = false)
     private Integer duration;
-
-    @Column(name = "exam_date")
-    private LocalDate examDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id", nullable = false)
@@ -37,4 +36,13 @@ public class Exam {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
+
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ExamQuestion> examQuestions;
+
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Submission> submissions;
+
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Clazz> classes;
 }
