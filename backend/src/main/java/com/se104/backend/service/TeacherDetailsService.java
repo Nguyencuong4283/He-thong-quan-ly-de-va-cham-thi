@@ -1,4 +1,4 @@
-package service;
+package com.se104.backend.service;
 
 import com.se104.backend.entity.Teacher;
 import com.se104.backend.repository.TeacherRepository;
