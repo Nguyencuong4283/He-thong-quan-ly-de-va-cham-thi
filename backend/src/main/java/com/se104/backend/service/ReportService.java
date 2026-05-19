@@ -1,0 +1,73 @@
+package com.se104.backend.service;
+
+import com.se104.backend.dto.response.ClassReportItem;
+import com.se104.backend.dto.response.DashboardReportResponse;
+import com.se104.backend.entity.Submission;
+import com.se104.backend.repository.ClazzRepository;
+import com.se104.backend.repository.ExamRepository;
+import com.se104.backend.repository.SubmissionRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class ReportService {
+    private final ClazzRepository clazzRepository;
+    private final ExamRepository examRepository;
+    private final SubmissionRepository submissionRepository;
+    public DashboardReportResponse getDashboardReport(Integer year) {
+        Integer totalClasses = clazzRepository.countByYear(year);
+        Integer totalExams = examRepository.countByYear(year);
+        List<Submission> submissions=submissionRepository.findByClazz_Year(year);
+        List<ClassReportItem> submissionRates=buildSubmissionRate(submissions);
+        List<ClassReportItem> averageScores=buildAverageScore(submissions);
+        return DashboardReportResponse.builder()
+                .totalClasses(totalClasses)
+                .totalExams(totalExams)
+                .submissionRates(submissionRates)
+                .averageScores(averageScores)
+                .build();
+    }
+    private List<ClassReportItem> buildSubmissionRate(List<Submission> submissions)
+    {
+        //Cho nay neu muon co the sua thanh query add vao repo cung duoc
+        return submissions.stream()
+                .collect(Collectors.groupingBy(s -> s.getClazz().getClassId()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    int amountSubmitted=entry.getValue().size();
+                    int totalStudent=entry.getValue().get(0).getClazz().getTotalStudent();
+                    double submissionRate=totalStudent==0?0:(((double)amountSubmitted / totalStudent) * 100);
+                    return ClassReportItem.builder()
+                            .classId(entry.getKey())
+                            .value(submissionRate)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+    private List<ClassReportItem> buildAverageScore(List<Submission> submissions)
+    {
+        //Cho nay neu muon co the sua thanh query add vao repo cung duoc
+        return submissions.stream()
+                .collect(Collectors.groupingBy(s -> s.getClazz().getClassId()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    double averageScore=entry.getValue().stream()
+                            .filter(Submission::isStatus) //bang voi cong thuc s->s.isStatus==true
+                            .mapToDouble(Submission::getScore) //nhu tren
+                            .average()
+                            .orElse(0);
+                    return ClassReportItem.builder()
+                            .classId(entry.getKey())
+                            .value(averageScore)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+}

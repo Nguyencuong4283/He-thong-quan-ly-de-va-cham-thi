@@ -15,7 +15,10 @@ public class Exam {
 
     @Id
     @Column(name = "exam_id", nullable = false)
-    private String examId;
+    private Integer examId;
+
+    @Column(name="exam_code",nullable = false)
+    private String examCode;
 
     @Column(name = "semester")
     private String semester;
