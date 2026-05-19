@@ -24,6 +24,9 @@ public class Account {
     @Column(nullable = false)
     private String role;
 
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
     public Account() {
     }
 
@@ -65,5 +68,13 @@ public class Account {
 
     public String getRole() {
         return role;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
     }
 }
