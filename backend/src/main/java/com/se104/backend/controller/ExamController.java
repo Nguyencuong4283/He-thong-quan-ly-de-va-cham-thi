@@ -31,8 +31,8 @@ public class ExamController {
                 .data(exams)
                 .build());
     }
-    @GetMapping("/{exam_id}")
-    public ResponseEntity<ApiResponse<ExamDetailResponse>> getExamById(@PathVariable("exam_id") int examId){
+    @GetMapping("/{examId}")
+    public ResponseEntity<ApiResponse<ExamDetailResponse>> getExamById(@PathVariable int examId){
         ExamDetailResponse examDetail=examService.getExamById(examId);
         return ResponseEntity.ok(ApiResponse.<ExamDetailResponse>builder()
                 .success(true)

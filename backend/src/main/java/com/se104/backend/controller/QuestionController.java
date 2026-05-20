@@ -38,8 +38,8 @@ public class QuestionController {
                 .meta(meta)
             .build(), HttpStatus.OK);
     }
-    @GetMapping("/{question_id}")
-    public ResponseEntity<ApiResponse<QuestionDetailResponse>> getQuestionById(@PathVariable("question_id") int questionId){
+    @GetMapping("/{questionId}")
+    public ResponseEntity<ApiResponse<QuestionDetailResponse>> getQuestionById(@PathVariable int questionId){
         QuestionDetailResponse questionDetail = questionService.getQuestionById(questionId);
         return new ResponseEntity<>(ApiResponse.<QuestionDetailResponse>builder()
                 .success(true)
@@ -54,8 +54,8 @@ public class QuestionController {
                 .data(question)
                 .build(), HttpStatus.OK);
     }
-    @PutMapping("/{question_id}")
-    public ResponseEntity<ApiResponse<QuestionDetailResponse>> updateQuestion(@PathVariable("question_id") int questionId,
+    @PutMapping("/{questionId}")
+    public ResponseEntity<ApiResponse<QuestionDetailResponse>> updateQuestion(@PathVariable int questionId,
                                                                               @Valid @RequestBody QuestionUpdateRequest questionUpdateRequest){
         QuestionDetailResponse question=questionService.updateQuestion(questionId,questionUpdateRequest);
         return new ResponseEntity<>(ApiResponse.<QuestionDetailResponse>builder()

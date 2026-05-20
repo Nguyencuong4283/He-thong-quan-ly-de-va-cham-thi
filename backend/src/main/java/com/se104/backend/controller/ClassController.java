@@ -35,8 +35,8 @@ public class ClassController {
                 .meta(classmeta)
                 .build());
     }
-    @GetMapping("/{class_id}/students")
-    public ResponseEntity<ApiResponse<ClassStudentResponse>> getClassStudent(@PathVariable("class_id") String classId)
+    @GetMapping("/{classId}/students")
+    public ResponseEntity<ApiResponse<ClassStudentResponse>> getClassStudent(@PathVariable String classId)
     {
         ClassStudentResponse classStudent=clazzService.getClassStudent(classId);
         return ResponseEntity.ok(ApiResponse.<ClassStudentResponse>builder()
@@ -54,8 +54,8 @@ public class ClassController {
                 .data(newClass)
                 .build());
     }
-    @PostMapping("/{class_id}/students")
-    public ResponseEntity<ApiResponse<List<StudentInfoDTO>>> addStudentToClass(@PathVariable("class_id") String classId,
+    @PostMapping("/{classId}/students")
+    public ResponseEntity<ApiResponse<List<StudentInfoDTO>>> addStudentToClass(@PathVariable String classId,
                                                                                @Valid @RequestBody StudentCreateRequest studentCreateRequest)
     {
         List<StudentInfoDTO> classStudent=studentService.createStudents(classId,studentCreateRequest);
@@ -64,9 +64,9 @@ public class ClassController {
                 .data(classStudent)
                 .build());
     }
-    @PutMapping("/{class_id}/assign-exam/{exam_id}")
-    public ResponseEntity<ApiResponse<ClassUpdateResponse>> assignExam(@PathVariable("class_id") String classId,
-                                                                       @PathVariable("exam_id") int examId)
+    @PutMapping("/{classId}/assign-exam/{examId}")
+    public ResponseEntity<ApiResponse<ClassUpdateResponse>> assignExam(@PathVariable String classId,
+                                                                       @PathVariable int examId)
     {
         ClassUpdateResponse updatedClass=clazzService.assignExam(classId,examId);
         return ResponseEntity.ok(ApiResponse.<ClassUpdateResponse>builder()
