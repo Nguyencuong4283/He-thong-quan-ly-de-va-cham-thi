@@ -61,7 +61,7 @@ public class SubmissionService {
             String classId, String studentId, SubmissionCreateRequest request) {
         String teacherId = SecurityUtil.getCurrentTeacherId();
         if (submissionRepository.existsByClazz_ClassIdAndStudent_StudentId(classId, studentId)) {
-            throw new RuntimeException("Submission already exists");
+            throw new BusinessException("Submission already exists");
         }
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
