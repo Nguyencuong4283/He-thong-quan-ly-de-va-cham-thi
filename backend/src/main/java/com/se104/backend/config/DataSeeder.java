@@ -41,6 +41,19 @@ public class DataSeeder implements CommandLineRunner {
 
         subjectRepository.save(subject);
 
+        Subject subject2 = Subject.builder()
+                .subjectId("SE101")
+                .subjectName("Phuong phap mo hinh hoa")
+                .build();
+        subjectRepository.save(subject2);
+
+        Subject subject3 = Subject.builder()
+                .subjectId("IT001")
+                .subjectName("Nhap mon lap trinh")
+                .build();
+        subjectRepository.save(subject3);
+
+
         TeacherSubject ts = new TeacherSubject();
 
         TeacherSubjectId id = new TeacherSubjectId();
@@ -52,5 +65,24 @@ public class DataSeeder implements CommandLineRunner {
         ts.setSubject(subject);
 
         teacherSubjectRepository.save(ts);
+
+        TeacherSubject ts2 = new TeacherSubject();
+        TeacherSubjectId id2 = new TeacherSubjectId();
+        id2.setTeacherId("GV001");
+        id2.setSubjectId("SE101");
+        ts2.setId(id2);
+        ts2.setTeacher(teacher);
+        ts2.setSubject(subject2);
+        teacherSubjectRepository.save(ts2);
+
+        TeacherSubject ts3 = new TeacherSubject();
+        TeacherSubjectId id3 = new TeacherSubjectId();
+        id3.setTeacherId("GV001");
+        id3.setSubjectId("IT001");
+        ts3.setId(id3);
+        ts3.setTeacher(teacher);
+        ts3.setSubject(subject3);
+        teacherSubjectRepository.save(ts3);
+
     }
 }

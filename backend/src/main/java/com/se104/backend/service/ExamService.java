@@ -17,6 +17,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -46,14 +49,13 @@ public class ExamService {
             if (semester != null) {
                 predicates.add(criteriaBuilder.equal(root.get("semester"), semester));
             }
-            if (Integer.valueOf(year) != null) {
+            if (year != null) {
                 predicates.add(criteriaBuilder.equal(root.get("year"), year));
             }
             return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         };
-
         return examRepository.findAll(spec).stream()
-                .map(exam -> examToExamListResponse(exam))
+                .map(this::examToExamListResponse)
                 .toList();
     }
 
@@ -93,7 +95,9 @@ public class ExamService {
                 .subject(subject)
                 .teacher(teacher)
                 .build();
-        exam.setExamQuestions(buildExamQuestions(exam, questions));
+        exam=examRepository.save(exam);
+        List<ExamQuestion> examQuestions=buildExamQuestions(exam,questions);
+        exam.setExamQuestions(examQuestions);
         exam=examRepository.save(exam);
         return examToExamListResponse(exam);
     }
@@ -143,6 +147,6 @@ public class ExamService {
                         .question(questions.get(i))
                         .questionOrder(i + 1)
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 }

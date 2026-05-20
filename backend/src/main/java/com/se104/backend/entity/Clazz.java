@@ -3,6 +3,7 @@ package com.se104.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -42,5 +43,5 @@ public class Clazz {
     private Exam exam;
 
     @OneToMany(mappedBy = "clazz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<StudentClass> studentClasses;
+    private List<StudentClass> studentClasses=new ArrayList<>();
 }

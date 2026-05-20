@@ -49,10 +49,10 @@ public class ClazzService {
                 .classId(clazz.getClassId())
                 .name(clazz.getName())
                 .subjectName(clazz.getSubject().getSubjectName())
-                .semester(clazz.getExam().getSemester())
-                .year(clazz.getExam().getYear())
-                .examId(clazz.getExam().getExamId())
-                .examCode(clazz.getExam().getExamCode())
+                .semester(clazz.getSemester())
+                .year(clazz.getYear())
+                .examId(clazz.getExam()!=null? clazz.getExam().getExamId():null)
+                .examCode(clazz.getExam()!=null? clazz.getExam().getExamCode():null)
                 .students(studentList)
                 .build();
     }
@@ -62,6 +62,12 @@ public class ClazzService {
                 .orElseThrow(()->new EntityNotFoundException("Teacher not found"));
         Subject subject=subjectRepository.findById(classCreateRequest.getSubjectId())
                 .orElseThrow(()->new EntityNotFoundException("Subject not found"));
+        Exam exam=null;
+        if (classCreateRequest.getExamId()!=null)
+        {
+            exam=examRepository.findById(classCreateRequest.getExamId())
+                    .orElseThrow(()->new EntityNotFoundException("Exam not found"));
+        }
         Clazz clazz=Clazz.builder()
                 .classId(classCreateRequest.getClassId())
                 .name(classCreateRequest.getName())
@@ -69,6 +75,7 @@ public class ClazzService {
                 .year(classCreateRequest.getYear())
                 .subject(subject)
                 .teacher(teacher)
+                .exam(exam)
                 .totalStudent(0)
                 .build();
         return classToClassListResponse(classRepository.save(clazz));
@@ -97,8 +104,10 @@ public class ClazzService {
                 .classId(clazz.getClassId())
                 .name(clazz.getName())
                 .subjectName(clazz.getSubject().getSubjectName())
+                .semester(clazz.getSemester())
+                .year(clazz.getYear())
                 .teacherId(clazz.getTeacher().getTeacherId())
-                .examCode(clazz.getExam().getExamCode())
+                .examCode(clazz.getExam()!=null? clazz.getExam().getExamCode():null)
                 .totalStudent(clazz.getTotalStudent())
                 .build();
     }

@@ -8,11 +8,12 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ClassListResponse {
     private String classId;
     private String name;
     private String subjectName;
+    private String semester;
+    private Integer year;
     private String teacherId;
     private String examCode;
     private Integer totalStudent;

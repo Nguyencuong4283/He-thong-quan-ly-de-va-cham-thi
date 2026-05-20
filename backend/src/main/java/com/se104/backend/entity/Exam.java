@@ -14,7 +14,8 @@ import java.util.List;
 public class Exam {
 
     @Id
-    @Column(name = "exam_id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "exam_id")
     private Integer examId;
 
     @Column(name="exam_code",nullable = false)

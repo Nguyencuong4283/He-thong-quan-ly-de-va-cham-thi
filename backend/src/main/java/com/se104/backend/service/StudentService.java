@@ -12,6 +12,8 @@ import com.se104.backend.repository.StudentClassRepository;
 import com.se104.backend.repository.StudentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final ClazzRepository clazzRepository;
     private final StudentClassRepository studentClassRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ExamService.class);
 
     @Transactional
     public List<StudentInfoDTO> createStudents(String classId, StudentCreateRequest request) {
@@ -48,6 +51,10 @@ public class StudentService {
             }
             StudentClass sc = buildStudentClass(clazz, student);
             studentClassRepository.save(sc);
+            clazz.getStudentClasses().add(sc);
+            student.getStudentClasses().add(sc);
+            clazzRepository.save(clazz);
+            studentRepository.save(student);
             ++dem;
             result.add(StudentInfoDTO.builder()
                     .studentId(student.getStudentId())
@@ -57,6 +64,7 @@ public class StudentService {
         }
         clazz.setTotalStudent(clazz.getTotalStudent() + dem);
         clazzRepository.save(clazz);
+        logger.info("Saved student class for student ID: {}", classId);
         return result;
     }
 

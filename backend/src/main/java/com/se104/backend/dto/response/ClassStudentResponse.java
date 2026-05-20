@@ -11,7 +11,6 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ClassStudentResponse {
     private String classId;
     private String name;

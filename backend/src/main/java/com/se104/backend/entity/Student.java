@@ -3,6 +3,7 @@ package com.se104.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -24,6 +25,6 @@ public class Student {
     private String email;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<StudentClass> studentClasses;
+    private List<StudentClass> studentClasses=new ArrayList<>();
 
 }

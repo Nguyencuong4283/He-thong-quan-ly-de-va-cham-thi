@@ -7,6 +7,8 @@ import com.se104.backend.repository.ClazzRepository;
 import com.se104.backend.repository.ExamRepository;
 import com.se104.backend.repository.SubmissionRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,12 +20,20 @@ public class ReportService {
     private final ClazzRepository clazzRepository;
     private final ExamRepository examRepository;
     private final SubmissionRepository submissionRepository;
+    private static final Logger log = LoggerFactory.getLogger(ReportService.class);
     public DashboardReportResponse getDashboardReport(Integer year) {
         Integer totalClasses = clazzRepository.countByYear(year);
         Integer totalExams = examRepository.countByYear(year);
         List<Submission> submissions=submissionRepository.findByClazz_Year(year);
-        List<ClassReportItem> submissionRates=buildSubmissionRate(submissions);
-        List<ClassReportItem> averageScores=buildAverageScore(submissions);
+        List<ClassReportItem> submissionRates=null;
+        List<ClassReportItem> averageScores=null;
+        if (!submissions.isEmpty())
+        {
+            submissionRates=buildSubmissionRate(submissions);
+            log.info("Submission rates:");
+            averageScores=buildAverageScore(submissions);
+            log.info("Average scores:");
+        }
         return DashboardReportResponse.builder()
                 .totalClasses(totalClasses)
                 .totalExams(totalExams)
