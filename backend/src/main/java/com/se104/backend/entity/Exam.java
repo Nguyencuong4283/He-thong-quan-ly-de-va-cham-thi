@@ -14,12 +14,8 @@ import java.util.List;
 public class Exam {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "exam_id")
-    private Integer examId;
-
-    @Column(name="exam_code",nullable = false)
-    private String examCode;
+    @Column(name = "exam_id", nullable = false)
+    private String examId;
 
     @Column(name = "semester")
     private String semester;

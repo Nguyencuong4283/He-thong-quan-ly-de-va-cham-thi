@@ -1,4 +1,4 @@
 package com.se104.backend.service;
 
-public class ClazzService {
+public class SubmissonService {
 }
