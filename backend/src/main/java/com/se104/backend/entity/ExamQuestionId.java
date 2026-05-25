@@ -13,7 +13,7 @@ import java.io.Serializable;
 public class ExamQuestionId implements Serializable {
 
     @Column(nullable = false)
-    private String examId;
+    private Integer examId;
 
     @Column(nullable = false)
     private Integer questionId;
