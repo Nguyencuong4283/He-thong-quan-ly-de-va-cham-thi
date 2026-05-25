@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
+	//Day la noi dung code tao nguoi dung va mon hoc
 
     private final TeacherRepository teacherRepository;
     private final SubjectRepository subjectRepository;
