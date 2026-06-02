@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Form, Button, Card, Container, Row, Col, InputGroup } from 'react-bootstrap';
+import * as authApi from '../api/authApi';
 
 const DangNhap = () => {
   const navigate = useNavigate();
@@ -21,10 +22,17 @@ const DangNhap = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    // Require an identifier but accept either an email or a teacher code (e.g., GV001).
     if (!formData.email.trim()) {
-      newErrors.email = 'Vui lòng nhập email';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Email không hợp lệ';
+      newErrors.email = 'Vui lòng nhập email hoặc mã giáo viên';
+    } else {
+      // If the input contains '@' treat it as an email and validate format.
+      if (formData.email.includes('@')) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = 'Email không hợp lệ';
+        }
+      }
+      // otherwise accept the teacher code without '@'
     }
 
     if (!formData.password.trim()) {
@@ -41,10 +49,37 @@ const DangNhap = () => {
     e.preventDefault();
 
     if (validateForm()) {
-      console.log('Login data:', formData);
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('userEmail', formData.email);
-      navigate('/');
+      (async () => {
+        try {
+          const res = await authApi.login(formData.email, formData.password);
+          // try common token locations
+          const token = res?.token || res?.data?.token || res?.accessToken || res?.data?.accessToken || res?.data?.jwt || null;
+          const teacher = res?.data?.teacher || res?.teacher;
+
+          if (token) {
+            localStorage.setItem('token', token);
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('userId', teacher?.teacherId || formData.email);
+            localStorage.setItem('userName', teacher?.fullName || '');
+            localStorage.setItem('loginTime', Date.now().toString());
+            navigate('/');
+          } else {
+            // fallback: if API returns success flag
+            if (res?.success) {
+              localStorage.setItem('isAuthenticated', 'true');
+              localStorage.setItem('userId', teacher?.teacherId || formData.email);
+              localStorage.setItem('userName', teacher?.fullName || '');
+              localStorage.setItem('loginTime', Date.now().toString());
+              navigate('/');
+            } else {
+              alert(res?.message || 'Đăng nhập thất bại');
+            }
+          }
+        } catch (err) {
+          console.error('Login error', err);
+          alert('Đăng nhập thất bại: kiểm tra thông tin hoặc server');
+        }
+      })();
     }
   };
 
@@ -69,7 +104,7 @@ const DangNhap = () => {
 
                 <Form onSubmit={handleSubmit}>
                   <Form.Group className="mb-3">
-                    <Form.Label className="fw-semibold small">Email</Form.Label>
+                    <Form.Label className="fw-semibold small">Email / Mã giáo viên</Form.Label>
                     <InputGroup hasValidation>
                       <InputGroup.Text className="bg-white border-end-0">
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#64748b">
@@ -77,8 +112,8 @@ const DangNhap = () => {
                         </svg>
                       </InputGroup.Text>
                       <Form.Control
-                        type="email"
-                        placeholder="example@uit.edu.vn"
+                        type="text"
+                        placeholder="example@uit.edu.vn hoặc GV001"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         isInvalid={!!errors.email}

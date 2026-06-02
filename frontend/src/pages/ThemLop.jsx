@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Card, Form, Button, Row, Col } from 'react-bootstrap';
+import classApi from '../api/classApi';
+import teacherApi from '../api/teacherApi';
+import { buildClassCreateRequest } from '../models/class';
 
 const ThemLop = () => {
   const navigate = useNavigate();
-  const subjects = ['Hệ điều hành', 'Mạng máy tính', 'Pháp luật', 'Lập trình hướng đối tượng'];
+  const [subjects, setSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -14,20 +18,56 @@ const ThemLop = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
   };
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const loadSubjects = async () => {
+      setLoadingSubjects(true);
+      try {
+        const res = await teacherApi.getSubjects();
+        if (res && res.success) setSubjects(res.data || []);
+      } catch (err) {
+        console.error('Load subjects error', err);
+      } finally {
+        setLoadingSubjects(false);
+      }
+    };
+    loadSubjects();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.subject) {
       setErrors({ name: !formData.name ? 'Vui lòng nhập mã lớp' : '', subject: !formData.subject ? 'Vui lòng chọn môn học' : '' });
       return;
     }
-    alert('Lớp học đã được tạo thành công!');
-    navigate('/quan-ly-lop');
+    setIsSaving(true);
+    try {
+      const payload = buildClassCreateRequest({
+        classId: formData.name,
+        className: formData.name,
+        subjectId: formData.subject,
+        semester: formData.semester,
+        year: formData.year,
+      });
+      const res = await classApi.createClass(payload);
+      if (res && res.success) {
+        alert('Lớp học đã được tạo thành công!');
+        navigate('/quan-ly-lop');
+      } else {
+        alert(res.message || 'Tạo lớp học thất bại');
+      }
+    } catch (err) {
+      console.error('Create class error', err);
+      alert('Có lỗi xảy ra khi tạo lớp học.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -54,7 +94,9 @@ const ThemLop = () => {
             <Form.Label className="fw-bold small">Môn học <span className="text-danger">*</span></Form.Label>
             <Form.Select value={formData.subject} onChange={(e) => handleInputChange('subject', e.target.value)} isInvalid={!!errors.subject}>
               <option value="">Chọn môn học</option>
-              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+              {loadingSubjects ? <option>Đang tải...</option> : subjects.map(s => (
+                <option key={s.subjectId || s.id} value={s.subjectId || s.id}>{s.subjectName || s.name}</option>
+              ))}
             </Form.Select>
             <Form.Control.Feedback type="invalid">{errors.subject}</Form.Control.Feedback>
           </Form.Group>
@@ -65,8 +107,9 @@ const ThemLop = () => {
                 <Form.Label className="fw-bold small">Học kỳ <span className="text-danger">*</span></Form.Label>
                 <Form.Select value={formData.semester} onChange={(e) => handleInputChange('semester', e.target.value)}>
                   <option value="">Chọn học kỳ</option>
-                  <option value="Fall 2025">Fall 2025</option>
-                  <option value="Spring 2026">Spring 2026</option>
+                  <option value="Học kỳ 1">Học kỳ 1</option>
+                  <option value="Học kỳ 2">Học kỳ 2</option>
+                  <option value="Học kỳ hè">Học kỳ hè</option>
                 </Form.Select>
               </Form.Group>
             </Col>

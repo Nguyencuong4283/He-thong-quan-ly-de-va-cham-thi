@@ -1,26 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Table, Button, Form, Badge } from 'react-bootstrap';
+import questionApi from '../api/questionApi';
+import teacherApi from '../api/teacherApi';
 
 const NganHangCauHoi = () => {
-  const allQuestions = [
-    { id: 'Q-IT007-001', subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Trung bình', topic: 'Process Management', usage: 3 },
-    { id: 'Q-IT007-002', subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Khó', topic: 'Memory Management', usage: 2 },
-    { id: 'Q-IT005-001', subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Dễ', topic: 'OSI Model', usage: 5 },
-    { id: 'Q-IT005-002', subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Trung bình', topic: 'TCP/IP', usage: 4 },
-    { id: 'Q-SS006-001', subject: 'Pháp luật', type: 'Tự luận', difficulty: 'Dễ', topic: 'Hiến pháp', usage: 6 },
-  ];
-
+  const [questions, setQuestions] = useState([]);
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [filterSubject, setFilterSubject] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [meta, setMeta] = useState({ totalQuestion: 0, amountSubject: 0 });
 
-  const subjects = Array.from(new Set(allQuestions.map(q => q.subject)));
+  const [subjects, setSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
 
-  const filteredQuestions = allQuestions.filter(question => {
+  const filteredQuestions = questions.filter(question => {
     const matchesDifficulty = filterDifficulty === '' || question.difficulty === filterDifficulty;
     const matchesSubject = filterSubject === '' || question.subject === filterSubject;
     return matchesDifficulty && matchesSubject;
   });
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setLoading(true);
+      try {
+        const res = await questionApi.getAllQuestions();
+        if (res && res.success) {
+          const items = (res.data || []).map(i => ({ id: i.questionId || i.id, subject: i.subjectName || i.subject, difficulty: i.difficulty }));
+          setQuestions(items);
+          setMeta(res.meta || { totalQuestion: 0, amountSubject: 0 });
+        } else {
+          setQuestions([]);
+        }
+        // load teacher subjects (used for the subject filter)
+        setLoadingSubjects(true);
+        const sres = await teacherApi.getSubjects();
+        if (sres && sres.success) {
+          setSubjects(sres.data || []);
+        } else {
+          setSubjects([]);
+        }
+        setLoadingSubjects(false);
+      } catch (err) {
+        console.error('Fetch questions error', err);
+        setQuestions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, []);
 
   const getDifficultyBadge = (diff) => {
     switch (diff) {
@@ -49,7 +79,7 @@ const NganHangCauHoi = () => {
             <div className="card-body p-4 position-relative z-1">
               <h6 className="text-white text-opacity-75 text-uppercase fw-bold small mb-4" style={{ letterSpacing: '1px' }}>Tổng số câu hỏi trong kho</h6>
               <div className="d-flex align-items-end gap-3 mb-4">
-                <h1 className="display-4 fw-bold mb-0">124</h1>
+                <h1 className="display-4 fw-bold mb-0">{meta?.totalQuestion ?? 0}</h1>
                 <span className="stat-badge-light">Tất cả các độ khó</span>
               </div>
             </div>
@@ -62,7 +92,7 @@ const NganHangCauHoi = () => {
             <div className="card-body p-4 position-relative z-1">
               <h6 className="text-white text-opacity-75 text-uppercase fw-bold small mb-4" style={{ letterSpacing: '1px' }}>Môn học đã có câu hỏi</h6>
               <div className="d-flex align-items-end gap-3 mb-4">
-                <h1 className="display-4 fw-bold mb-0">15</h1>
+                <h1 className="display-4 fw-bold mb-0">{meta?.amountSubject ?? 0}</h1>
                 <span className="stat-badge-light">Môn đào tạo</span>
               </div>
             </div>
@@ -70,7 +100,6 @@ const NganHangCauHoi = () => {
           </Card>
         </Col>
       </Row>
-
       <Card className="border-0 shadow-sm p-4 mb-4">
         <div className="mb-4">
           <h5 className="fw-bold mb-2">Bộ lọc tìm kiếm</h5>
@@ -82,7 +111,15 @@ const NganHangCauHoi = () => {
               <Form.Label className="small fw-bold text-secondary">Môn học</Form.Label>
               <Form.Select className="rounded-3" value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
                 <option value="">Tất cả môn học</option>
-                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                {loadingSubjects ? (
+                  <option value="">Đang tải môn học...</option>
+                ) : (
+                  subjects.map(s => (
+                    <option key={s.subjectId || s.id} value={s.subjectName || s.name || s.label || s.subjectName}>
+                      {s.subjectName || s.name || s.label}
+                    </option>
+                  ))
+                )}
               </Form.Select>
             </Form.Group>
           </Col>

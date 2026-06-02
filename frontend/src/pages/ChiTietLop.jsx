@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Table, Button, Modal, Form } from 'react-bootstrap';
+import classApi from '../api/classApi';
+import examApi from '../api/examApi';
+import { mapStudentListItem } from '../models/student';
+import { mapExamListItem } from '../models/exam';
 
 const ChiTietLop = () => {
   const navigate = useNavigate();
@@ -9,38 +13,69 @@ const ChiTietLop = () => {
   const [classDetail, setClassDetail] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState('');
-
-  const availableExams = [
-    { id: 'EX-IT007-2025-01', name: 'Hệ điều hành - Giữa kỳ Fall 2025' },
-    { id: 'EX-IT005-2025-02', name: 'Nhập môn mạng máy tính - Cuối kỳ Fall 2025' },
-  ];
+  const [availableExams, setAvailableExams] = useState([]);
+  const [isAssigning, setIsAssigning] = useState(false);
 
   useEffect(() => {
-    // Mock load
-    setTimeout(() => {
-      setClassDetail({
-        id: id,
-        name: 'IT007.N11',
-        subject: 'Hệ điều hành',
-        semester: 'Fall 2025',
-        year: '2025-2026',
-        assignedExam: 'EX-IT007-2025-01',
-        students: [
-          { id: 'SV001', name: 'Nguyễn Văn A', email: 'sv001@uit.edu.vn' },
-          { id: 'SV002', name: 'Trần Thị B', email: 'sv002@uit.edu.vn' },
-        ],
-      });
-      setLoading(false);
-    }, 500);
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [classRes, examsRes] = await Promise.all([
+          classApi.getStudentsByClassId(id),
+          examApi.getExams()
+        ]);
+
+        if (classRes && classRes.success) {
+          const rawData = classRes.data || {};
+          const studentList = Array.isArray(rawData.students) 
+            ? rawData.students.map(mapStudentListItem) 
+            : [];
+            
+          setClassDetail({
+            ...rawData,
+            className: rawData.name || rawData.className || 'Chưa đặt tên',
+            students: studentList 
+          });
+          setSelectedExam(rawData.examId || '');
+          console.log("Class Detail Loaded:", rawData);
+        }
+        if (examsRes && examsRes.success) {
+          setAvailableExams((examsRes.data || []).map(mapExamListItem));
+        }
+      } catch (err) {
+        console.error('Load class detail error', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, [id]);
 
-  const handleAssign = () => {
-    setClassDetail({ ...classDetail, assignedExam: selectedExam });
-    setShowAssignModal(false);
-    alert('Đã gán đề thi thành công!');
+  const handleAssign = async () => {
+    if (!selectedExam) return;
+    setIsAssigning(true);
+    try {
+      const res = await classApi.assignExam(id, selectedExam);
+      if (res && res.success) {
+        // Sau khi gán thành công, tìm lại thông tin đề thi để cập nhật UI
+        const assignedExamDetail = availableExams.find(e => String(e.examId) === String(selectedExam));
+        setClassDetail({ ...classDetail, examId: selectedExam, examCode: assignedExamDetail?.examCode });
+        setShowAssignModal(false);
+        alert('Đã gán đề thi thành công!');
+      } else {
+        alert(res.message || 'Gán đề thi thất bại');
+      }
+    } catch (err) {
+      console.error('Assign exam error', err);
+      alert('Lỗi khi gán đề thi');
+    } finally {
+      setIsAssigning(false);
+    }
   };
 
   if (loading) return <Container className="py-5 text-center text-primary"><p className="fw-bold">Đang tải dữ liệu...</p></Container>;
+
+  if (!classDetail) return <Container className="py-5 text-center"><p className="text-danger fw-bold">Không tìm thấy thông tin lớp học.</p></Container>;
 
   return (
     <Container fluid className="page-fade-in">
@@ -50,8 +85,8 @@ const ChiTietLop = () => {
         </Button>
         <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h2 className="fw-bold mb-1" style={{ color: '#000000' }}>{classDetail.name}</h2>
-            <p className="text-secondary mb-0 fw-bold">{classDetail.subject}</p>
+            <h2 className="fw-bold mb-1" style={{ color: '#000000' }}>{classDetail.className}</h2>
+            <p className="text-secondary mb-0 fw-bold">{classDetail.subjectName}</p>
           </div>
           <Button as={Link} to={`/quan-ly-lop/nhap-hoc-sinh/${id}`} className="btn-success d-flex align-items-center gap-2 shadow-sm">
             <i className="bi bi-person-plus-fill"></i> Nhập danh sách học sinh
@@ -81,18 +116,18 @@ const ChiTietLop = () => {
 
       <Card className="border shadow-sm p-4 mb-4">
         <h5 className="fw-bold mb-4" style={{ color: '#000000' }}>Đề thi đang áp dụng</h5>
-        {classDetail.assignedExam ? (
+        {classDetail.examCode ? (
           <div className="d-flex justify-content-between align-items-center border rounded-4 p-4 bg-light bg-opacity-50">
             <div className="d-flex align-items-center gap-4">
               <div className="bg-info bg-opacity-20 text-info rounded-4 p-3 fs-3">
                 <i className="bi bi-file-earmark-check-fill"></i>
               </div>
               <div>
-                <p className="mb-1 fw-bold text-primary fs-5">{classDetail.assignedExam}</p>
-                <p className="mb-0 text-dark fw-bold">{availableExams.find(e => e.id === classDetail.assignedExam)?.name}</p>
+                <p className="mb-1 fw-bold text-primary fs-5">{classDetail.examCode}</p>
+                <p className="mb-0 text-dark fw-bold">{availableExams.find(e => e.examCode === classDetail.examCode)?.subjectName}</p>
               </div>
             </div>
-            <Button variant="outline-primary" className="fw-bold px-4 rounded-3 shadow-sm bg-white" onClick={() => { setSelectedExam(classDetail.assignedExam); setShowAssignModal(true); }}>
+            <Button variant="outline-primary" className="fw-bold px-4 rounded-3 shadow-sm bg-white" onClick={() => { setSelectedExam(classDetail.examId); setShowAssignModal(true); }}>
               Thay đổi đề thi
             </Button>
           </div>
@@ -119,9 +154,9 @@ const ChiTietLop = () => {
           </thead>
           <tbody>
             {classDetail.students.map(s => (
-              <tr key={s.id} className="align-middle">
-                <td className="px-4 py-3 fw-bold text-primary">{s.id}</td>
-                <td className="px-4 py-3 fw-bold text-dark">{s.name}</td>
+              <tr key={s.studentId} className="align-middle">
+                <td className="px-4 py-3 fw-bold text-primary">{s.studentId}</td>
+                <td className="px-4 py-3 fw-bold text-dark">{s.fullName}</td>
                 <td className="px-4 py-3 text-secondary fw-medium">{s.email}</td>
               </tr>
             ))}
@@ -136,7 +171,9 @@ const ChiTietLop = () => {
             <Form.Label className="small fw-bold text-dark text-uppercase mb-2">Chọn đề thi phù hợp</Form.Label>
             <Form.Select className="py-3 rounded-3 fw-bold border-2" value={selectedExam} onChange={(e) => setSelectedExam(e.target.value)}>
               <option value="">-- Chọn đề thi --</option>
-              {availableExams.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+              {availableExams.map(e => (
+                <option key={e.examId} value={e.examId}>{e.examCode} - {e.subjectName}</option>
+              ))}
             </Form.Select>
           </Form.Group>
         </Modal.Body>

@@ -19,9 +19,22 @@ import DanhSachHocSinhChamThi from './pages/DanhSachHocSinhChamThi';
 import ChamDiem from './pages/ChamDiem';
 import XemChiTietBaiThi from './pages/XemChiTietBaiThi';
 
-// Mock Protected Route - Đã vô hiệu hóa để bỏ qua đăng nhập
 const ProtectedRoute = ({ children }) => {
-  // Luôn trả về children để vào thẳng trang chính
+  const token = localStorage.getItem('token');
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const loginTime = localStorage.getItem('loginTime');
+  const SESSION_TIMEOUT = 14400000; 
+  const isExpired = loginTime && (Date.now() - parseInt(loginTime) > SESSION_TIMEOUT);
+
+  if (!token || !isAuthenticated || isExpired) {
+    if (isExpired) {
+      console.warn("Phiên làm việc đã hết hạn sau 4 tiếng.");
+      localStorage.removeItem('token');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('loginTime');
+    }
+    return <Navigate to="/dang-nhap" replace />;
+  }
   return children;
 };
 

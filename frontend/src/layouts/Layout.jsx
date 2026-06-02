@@ -8,12 +8,11 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   
-  const userEmail = localStorage.getItem('userEmail') || 'admin@uit.edu.vn';
-  const userName = 'TS. Nguyễn Văn X';
+  const userId = localStorage.getItem('userId') || '';
+  const userName = localStorage.getItem('userName') || 'Giảng viên';
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userEmail');
+    localStorage.clear();
     navigate('/dang-nhap');
   };
 
@@ -83,7 +82,7 @@ const Layout = ({ children }) => {
             <div className="avatar-circle shadow-md" style={{ width: '36px', height: '36px', borderRadius: '10px' }}>{userName.charAt(0)}</div>
             <div className="overflow-hidden text-white">
               <p className="mb-0 fw-bold small text-truncate">{userName}</p>
-              <p className="mb-0 text-white text-opacity-40 x-small text-truncate" style={{ fontSize: '10px' }}>{userEmail}</p>
+              <p className="mb-0 text-white text-opacity-40 x-small text-truncate" style={{ fontSize: '10px' }}>{userId}</p>
             </div>
           </div>
         </div>

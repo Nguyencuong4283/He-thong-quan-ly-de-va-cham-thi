@@ -64,6 +64,7 @@ public class GlobalExceptionHandler {
     //
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
+        ex.printStackTrace();
         return new ResponseEntity<>(
                 ApiResponse.<Void>builder()
                         .success(false)

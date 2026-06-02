@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Card, Form, Button, Row, Col, Table } from 'react-bootstrap';
+import classApi from '../api/classApi';
+import { buildStudentCreateRequest } from '../models/student';
+import { submissionApi } from '../api/submissionApi';
+import { buildSubmissionCreateAndUpdateRequest } from '../models/submission';
 
 const NhapDanhSachHocSinh = () => {
   const navigate = useNavigate();
@@ -8,6 +12,7 @@ const NhapDanhSachHocSinh = () => {
   const [importMethod, setImportMethod] = useState('manual');
   const [students, setStudents] = useState([]);
   const [formData, setFormData] = useState({ mssv: '', name: '', email: '', phone: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -18,10 +23,50 @@ const NhapDanhSachHocSinh = () => {
 
   const handleRemove = (mssv) => setStudents(students.filter(s => s.mssv !== mssv));
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (students.length === 0) return alert('Chưa có học sinh nào');
-    alert(`Đã nhập thành công ${students.length} học sinh!`);
-    navigate(`/quan-ly-lop/chi-tiet/${id}`);
+    if (!id) return alert('Không xác định được lớp học');
+
+    setIsSaving(true);
+    try {
+      const studentPayload = buildStudentCreateRequest(students);
+      const studentRes = await classApi.createStudent(id, studentPayload);
+
+      if (!studentRes.success) {
+        throw new Error(studentRes.message || 'Không thể tạo danh sách học sinh');
+      }
+
+      const classRes = await classApi.getStudentsByClassId(id);
+      const targetExamId = classRes.data?.examId;
+
+      if (targetExamId !== undefined && targetExamId !== null) {
+        console.log('Students added, now initializing submissions for examId:', targetExamId);
+        const studentsToCreate = Array.isArray(studentRes.data) ? studentRes.data : students;
+        
+        const submissionPromises = studentsToCreate.map((s) => {
+          const subPayload = buildSubmissionCreateAndUpdateRequest({
+            examId: targetExamId,
+            score: 0,
+            scoreText: '',
+            note: '',
+            status: false,
+          });
+          const sid = s.studentId || s.mssv;
+          return submissionApi.createSubmission(id, sid, subPayload);
+        });
+        await Promise.all(submissionPromises);
+        alert('Nhập danh sách học sinh và khởi tạo bài thi thành công!');
+      } else {
+        alert('Đã thêm học sinh, nhưng không thể khởi tạo bài chấm vì lớp học này chưa được gán đề thi.');
+      }
+
+      navigate(`/quan-ly-lop/chi-tiet/${id}`);
+    } catch (err) {
+      console.error('Create student error', err);
+      alert(err.message || 'Không thể tạo học sinh.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -108,8 +153,10 @@ const NhapDanhSachHocSinh = () => {
 
       {students.length > 0 && (
         <div className="d-flex gap-3">
-          <Button variant="primary" className="fw-bold px-4 py-2" onClick={handleSubmit}>Hoàn tất nhập</Button>
-          <Button variant="outline-secondary" onClick={() => navigate(-1)}>Hủy</Button>
+          <Button variant="primary" className="fw-bold px-4 py-2" onClick={handleSubmit} disabled={isSaving}>
+            {isSaving ? 'Đang lưu...' : 'Hoàn tất nhập'}
+          </Button>
+          <Button variant="outline-secondary" onClick={() => navigate(-1)} disabled={isSaving}>Hủy</Button>
         </div>
       )}
     </Container>

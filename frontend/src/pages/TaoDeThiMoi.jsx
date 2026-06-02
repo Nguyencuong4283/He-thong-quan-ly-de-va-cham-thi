@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Modal, Table, Badge } from 'react-bootstrap';
+import examApi from '../api/examApi';
+import { buildExamCreateRequest } from '../models/exam';
+import questionApi from '../api/questionApi';
+import teacherApi from '../api/teacherApi';
 
 const TaoDeThiMoi = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    tenMonThi: '',
+    maMonThi: '',
     hocKy: '',
     namHoc: '',
     thoiLuong: 30,
@@ -15,16 +19,52 @@ const TaoDeThiMoi = () => {
   const [showQuestionBank, setShowQuestionBank] = useState(false);
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [filterSubject, setFilterSubject] = useState('');
+  const [bankQuestions, setBankQuestions] = useState([]);
+  const [subjectList, setSubjectList] = useState([]);
 
-  const allBankQuestions = [
-    { id: 'Q-IT007-001', subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Trung bình', topic: 'Process Management', usage: 3 },
-    { id: 'Q-IT007-002', subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Khó', topic: 'Memory Management', usage: 2 },
-    { id: 'Q-IT005-001', subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Dễ', topic: 'OSI Model', usage: 5 },
-    { id: 'Q-IT005-002', subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Trung bình', topic: 'TCP/IP', usage: 4 },
-    { id: 'Q-SS006-001', subject: 'Pháp luật', type: 'Tự luận', difficulty: 'Dễ', topic: 'Hiến pháp', usage: 6 },
-  ];
+  const bankSubjects = Array.from(new Set(bankQuestions.map((q) => q.subjectName || q.subject)));
 
-  const subjects = Array.from(new Set(allBankQuestions.map(q => q.subject)));
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await questionApi.getAllQuestions();
+        if (res && res.success) {
+          // questionApi returns mapped list items
+          const list = (res.data || []).map((it) => ({
+            questionId: it.questionId,
+            subjectName: it.subjectName,
+            difficulty: it.difficulty,
+            content: it.content || '',
+          }));
+          setBankQuestions(list);
+        } else {
+          setBankQuestions([]);
+        }
+      } catch (err) {
+        console.error('Load bank questions error', err);
+        setBankQuestions([]);
+      }
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    const loadSubjects = async () => {
+      try {
+        const res = await teacherApi.getSubjects();
+        if (res && res.success) {
+          setSubjectList(res.data || []);
+        } else {
+          setSubjectList([]);
+        }
+      } catch (err) {
+        console.error('Load subjects error', err);
+        setSubjectList([]);
+      }
+    };
+    loadSubjects();
+  }, []);
+
   const [errors, setErrors] = useState({});
 
   const handleInputChange = (field, value) => {
@@ -32,17 +72,30 @@ const TaoDeThiMoi = () => {
     if (errors[field]) setErrors({ ...errors, [field]: '' });
   };
 
-  const filteredBankQuestions = allBankQuestions.filter(q => {
+  const filteredBankQuestions = bankQuestions.filter((q) => {
     const matchesDifficulty = filterDifficulty === '' || q.difficulty === filterDifficulty;
-    const matchesSubject = filterSubject === '' || q.subject === filterSubject;
-    const notSelected = !selectedQuestions.some(sq => sq.id === q.id);
+    const matchesSubject = filterSubject === '' || q.subjectName === filterSubject;
+    const notSelected = !selectedQuestions.some((sq) => sq.id === q.questionId || sq.id === q.id);
     return matchesDifficulty && matchesSubject && notSelected;
   });
 
-  const addQuestion = (q) => {
-    if (selectedQuestions.length < 5) {
-      setSelectedQuestions([...selectedQuestions, { ...q, orderIndex: selectedQuestions.length + 1 }]);
+  const addQuestion = async (q) => {
+    if (selectedQuestions.length >= 5) return;
+    // try to fetch full question detail
+    try {
+      const res = await questionApi.getQuestionById(q.questionId || q.id);
+      const detail = res && res.success ? res.data : null;
+      const item = {
+        id: q.questionId || q.id,
+        subject: q.subjectName || q.subject,
+        difficulty: q.difficulty || '',
+        content: detail?.content || q.content || '',
+        orderIndex: selectedQuestions.length + 1,
+      };
+      setSelectedQuestions([...selectedQuestions, item]);
       setShowQuestionBank(false);
+    } catch (err) {
+      console.error('Add question error', err);
     }
   };
 
@@ -52,12 +105,37 @@ const TaoDeThiMoi = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.maMonThi) {
+      alert('Vui lòng chọn môn thi');
+      return;
+    }
     if (selectedQuestions.length === 0) {
       alert('Vui lòng chọn ít nhất 1 câu hỏi');
       return;
     }
-    alert('Đề thi đã được tạo thành công!');
-    navigate('/de-thi');
+    const payload = buildExamCreateRequest({
+      examCode: `EX-${Date.now()}`,
+      semester: formData.hocKy,
+      year: formData.namHoc,
+      duration: formData.thoiLuong,
+      subjectId: formData.maMonThi,
+      questions: selectedQuestions.map((q) => q.id),
+    });
+
+    (async () => {
+      try {
+        const res = await examApi.createExam(payload);
+        if (res && res.success) {
+          alert('Đề thi đã được tạo thành công!');
+          navigate('/de-thi');
+        } else {
+          alert(res.message || 'Tạo đề thi thất bại');
+        }
+      } catch (err) {
+        console.error('Create exam error', err);
+        alert('Lỗi khi tạo đề thi');
+      }
+    })();
   };
 
   return (
@@ -81,7 +159,14 @@ const TaoDeThiMoi = () => {
             <Col md={4}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Tên môn thi <span className="text-danger">*</span></Form.Label>
-                <Form.Control type="text" placeholder="VD: Hệ điều hành" value={formData.tenMonThi} onChange={(e) => handleInputChange('tenMonThi', e.target.value)} />
+                <Form.Select value={formData.maMonThi} onChange={(e) => handleInputChange('maMonThi', e.target.value)}>
+                  <option value="">Chọn môn học</option>
+                  {subjectList.map((s) => (
+                    <option key={s.subjectId || s.id} value={s.subjectId || s.id}>
+                      {s.subjectName || s.name || s.label}
+                    </option>
+                  ))}
+                </Form.Select>
               </Form.Group>
             </Col>
             <Col md={4}>
@@ -89,8 +174,9 @@ const TaoDeThiMoi = () => {
                 <Form.Label className="fw-bold small">Học kỳ <span className="text-danger">*</span></Form.Label>
                 <Form.Select value={formData.hocKy} onChange={(e) => handleInputChange('hocKy', e.target.value)}>
                   <option value="">Chọn học kỳ</option>
-                  <option value="Fall 2025">Fall 2025</option>
-                  <option value="Spring 2026">Spring 2026</option>
+                  <option value="Học kỳ 1">Học kỳ 1</option>
+                  <option value="Học kỳ 2">Học kỳ 2</option>
+                  <option value="Học kỳ hè">Học kỳ hè</option>
                 </Form.Select>
               </Form.Group>
             </Col>
@@ -131,7 +217,7 @@ const TaoDeThiMoi = () => {
                       <Badge bg={q.difficulty === 'Dễ' ? 'success' : q.difficulty === 'Khó' ? 'danger' : 'warning'} text={q.difficulty === 'Trung bình' ? 'dark' : 'white'} className="rounded-pill px-2">
                         {q.difficulty}
                       </Badge>
-                      <p className="mb-0 text-muted x-small mt-1">{q.subject} | {q.topic}</p>
+                      <p className="mb-0 text-muted x-small mt-1">{q.subject} {q.content ? `| ${q.content.slice(0, 80)}${q.content.length > 80 ? '...' : ''}` : ''}</p>
                     </div>
                     <Button variant="link" className="text-danger p-0" onClick={() => removeQuestion(q.id)}>
                       <i className="bi bi-trash fs-5"></i>
@@ -158,7 +244,7 @@ const TaoDeThiMoi = () => {
             <Col md={6}>
               <Form.Select size="sm" value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
                 <option value="">Tất cả môn học</option>
-                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                {bankSubjects.map(s => <option key={s} value={s}>{s}</option>)}
               </Form.Select>
             </Col>
             <Col md={6}>
@@ -176,15 +262,15 @@ const TaoDeThiMoi = () => {
             ) : (
               <div className="list-group">
                 {filteredBankQuestions.map(q => (
-                  <button key={q.id} className="list-group-item list-group-item-action p-3" onClick={() => addQuestion(q)}>
+                  <button key={q.questionId} className="list-group-item list-group-item-action p-3" onClick={() => addQuestion(q)}>
                     <div className="d-flex justify-content-between align-items-center mb-1">
-                      <span className="fw-bold text-primary">{q.id}</span>
+                      <span className="fw-bold text-primary">{q.questionId}</span>
                       <Badge bg={q.difficulty === 'Dễ' ? 'success' : q.difficulty === 'Khó' ? 'danger' : 'warning'} text={q.difficulty === 'Trung bình' ? 'dark' : 'white'} className="rounded-pill px-2">
                         {q.difficulty}
                       </Badge>
                     </div>
-                    <p className="mb-1 text-dark small fw-medium">{q.subject}</p>
-                    <p className="mb-0 text-muted x-small">Chủ đề: {q.topic}</p>
+                    <p className="mb-1 text-dark small fw-medium">{q.subjectName}</p>
+                    <p className="mb-0 text-muted x-small">{q.content ? `${q.content.slice(0, 120)}${q.content.length > 120 ? '...' : ''}` : ''}</p>
                   </button>
                 ))}
               </div>

@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Card, Form, Button, Row, Col, Alert } from 'react-bootstrap';
+import questionApi from '../api/questionApi';
+import teacherApi from '../api/teacherApi';
+import { buildQuestionCreateRequest } from '../models/question';
 
 const ThemCauHoi = () => {
   const navigate = useNavigate();
-  const subjects = ['Hệ điều hành', 'Mạng máy tính', 'Pháp luật', 'Lập trình hướng đối tượng', 'Cơ sở dữ liệu'];
+  const [subjects, setSubjects] = useState([]);
+  const [loadingSubjects, setLoadingSubjects] = useState(false);
 
   const [formData, setFormData] = useState({
     monHoc: '',
@@ -14,6 +18,7 @@ const ThemCauHoi = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -30,13 +35,50 @@ const ThemCauHoi = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      alert('Câu hỏi đã được thêm thành công!');
-      navigate('/ngan-hang-cau-hoi');
+    if (!validateForm()) return;
+
+    const questionData = buildQuestionCreateRequest({
+      content: formData.noiDung,
+      answer: formData.outline,
+      difficulty: formData.doKho,
+      subjectId: formData.monHoc,
+    });
+
+    try {
+      setSaving(true);
+      const result = await questionApi.createQuestion(questionData);
+      if (result.success) {
+        alert('Câu hỏi đã được thêm thành công!');
+        navigate('/ngan-hang-cau-hoi');
+      } else {
+        alert(result.message || 'Thêm câu hỏi thất bại');
+      }
+    } catch (error) {
+      alert('Có lỗi xảy ra khi tạo câu hỏi.');
+    } finally {
+      setSaving(false);
     }
   };
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setLoadingSubjects(true);
+      const res = await teacherApi.getSubjects();
+      if (!mounted) return;
+      if (res.success) {
+        setSubjects(res.data || []);
+      } else {
+        // keep empty list; optionally show a message
+        setSubjects([]);
+      }
+      setLoadingSubjects(false);
+    };
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <Container fluid>
@@ -59,7 +101,11 @@ const ThemCauHoi = () => {
             <Form.Label className="fw-bold small">Môn học <span className="text-danger">*</span></Form.Label>
             <Form.Select value={formData.monHoc} onChange={(e) => handleInputChange('monHoc', e.target.value)} isInvalid={!!errors.monHoc}>
               <option value="">Chọn môn học</option>
-              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+              {loadingSubjects ? (
+                <option value="">Đang tải môn học...</option>
+              ) : (
+                subjects.map(s => <option key={s.subjectId || s.id} value={s.subjectId || s.id}>{s.subjectName || s.name || s.label}</option>)
+              )}
             </Form.Select>
             <Form.Control.Feedback type="invalid">{errors.monHoc}</Form.Control.Feedback>
           </Form.Group>
@@ -70,10 +116,9 @@ const ThemCauHoi = () => {
               <option value="">Chọn độ khó</option>
               <option value="Dễ">Dễ</option>
               <option value="Trung bình">Trung bình</option>
-              <option value="Phức tạp">Phức tạp</option>
               <option value="Khó">Khó</option>
             </Form.Select>
-            <Form.Text className="text-muted x-small">QĐ1: Có 4 độ khó (Dễ, Trung Bình, Phức Tạp, Khó)</Form.Text>
+            <Form.Text className="text-muted x-small">QĐ1: Có 3 độ khó (Dễ, Trung bình, Khó)</Form.Text>
             <Form.Control.Feedback type="invalid">{errors.doKho}</Form.Control.Feedback>
           </Form.Group>
 
@@ -108,7 +153,9 @@ const ThemCauHoi = () => {
           </Form.Group>
 
           <div className="d-flex gap-3 pt-3 border-top">
-            <Button variant="primary" type="submit" className="fw-bold px-4">Thêm câu hỏi</Button>
+            <Button variant="primary" type="submit" className="fw-bold px-4" disabled={saving}>
+              {saving ? 'Đang lưu...' : 'Thêm câu hỏi'}
+            </Button>
             <Button variant="outline-secondary" onClick={() => navigate('/ngan-hang-cau-hoi')} className="px-4">Hủy</Button>
           </div>
         </Form>

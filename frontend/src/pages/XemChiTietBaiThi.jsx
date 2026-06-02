@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
+import { submissionApi } from '../api/submissionApi';
+import classApi from '../api/classApi';
 
 const XemChiTietBaiThi = () => {
   const { id } = useParams();
@@ -9,22 +11,33 @@ const XemChiTietBaiThi = () => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    // Mock load
-    setTimeout(() => {
-      setData({
-        id: id,
-        examName: 'Hệ điều hành',
-        student: 'Trần Thị B',
-        studentId: 'SV002',
-        submitted: '25/04/2026',
-        score: 8.5,
-        scoreText: 'Tám phẩy năm',
-        comments: 'Làm bài rất tốt, chữ viết rõ ràng.',
-        gradedBy: 'TS. Nguyễn Văn X',
-        gradedDate: '26/04/2026 16:00',
-      });
-      setLoading(false);
-    }, 500);
+    const loadDetail = async () => {
+      setLoading(true);
+      try {
+        const res = await submissionApi.getSubmissionById(id);
+        if (res && res.success) {
+          const subData = res.data;
+          setData(subData);
+          
+          // Tải thêm thông tin môn học và mã đề từ lớp
+          if (subData.classId) {
+            const classRes = await classApi.getStudentsByClassId(subData.classId);
+            if (classRes && classRes.success) {
+              setData(prev => ({
+                ...prev,
+                subjectName: classRes.data.subjectName,
+                examCode: classRes.data.examCode
+              }));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Fetch submission detail error', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadDetail();
   }, [id]);
 
   if (loading) return <Container className="py-5 text-center"><p>Đang tải...</p></Container>;
@@ -38,7 +51,7 @@ const XemChiTietBaiThi = () => {
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h2 className="fw-bold text-dark mb-1">CHI TIẾT ĐIỂM BÀI THI</h2>
-            <p className="text-muted small">Mã bài thi: {data.id}</p>
+            <p className="text-muted small">Mã bài nộp: {id} | Mã đề: <span className="text-primary fw-bold">{data?.examCode || '---'}</span></p>
           </div>
           <div className="d-flex gap-3">
             <Card className="border-0 shadow-sm px-4 py-2 text-center bg-light">
@@ -57,9 +70,8 @@ const XemChiTietBaiThi = () => {
       </div>
 
       <Row className="mb-4 g-3">
-        <Col md={4}><Card className="border-0 shadow-sm p-3 text-center"><h6 className="text-muted small fw-bold">Học sinh</h6><p className="mb-0 fw-bold">{data.student}</p><p className="text-muted x-small mb-0">{data.studentId}</p></Card></Col>
-        <Col md={4}><Card className="border-0 shadow-sm p-3 text-center"><h6 className="text-muted small fw-bold">Môn học</h6><p className="mb-0 fw-bold">{data.examName}</p></Card></Col>
-        <Col md={4}><Card className="border-0 shadow-sm p-3 text-center"><h6 className="text-muted small fw-bold">Ngày thi</h6><p className="mb-0 fw-bold">{data.submitted}</p></Card></Col>
+        <Col md={4}><Card className="border-0 shadow-sm p-3 text-center"><h6 className="text-muted small fw-bold">Học sinh</h6><p className="mb-0 fw-bold">{data.studentName || data.fullName}</p><p className="text-muted x-small mb-0">{data.studentId}</p></Card></Col>
+        <Col md={4}><Card className="border-0 shadow-sm p-3 text-center"><h6 className="text-muted small fw-bold">Môn học</h6><p className="mb-0 fw-bold">{data.subjectName}</p></Card></Col>
       </Row>
 
       <Card className="border-0 shadow-sm p-4 mx-auto" style={{ maxWidth: '800px' }}>
@@ -71,17 +83,11 @@ const XemChiTietBaiThi = () => {
               <p className="mb-0 fw-medium">{data.gradedBy}</p>
             </div>
           </Col>
-          <Col md={6}>
-            <div className="bg-light p-3 rounded-3">
-              <h6 className="text-muted small fw-bold">Thời gian chấm</h6>
-              <p className="mb-0 fw-medium">{data.gradedDate}</p>
-            </div>
-          </Col>
         </Row>
         <div className="mt-2">
-          <h6 className="text-dark fw-bold small mb-2">Ghi chú / Nhận xét bài làm:</h6>
+          <h6 className="text-dark fw-bold small mb-2">Ghi chú bài làm:</h6>
           <Card className="p-3 bg-light border-0">
-            <p className="mb-0 text-dark small">{data.comments || 'Không có nhận xét.'}</p>
+            <p className="mb-0 text-dark small">{data.note || 'Không có nhận xét.'}</p>
           </Card>
         </div>
       </Card>

@@ -1,5 +1,6 @@
 package com.se104.backend.dto.request;
 
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ExamUpdateRequest {
     @DecimalMin(value="30", message="Duration must be at least 30")
-    @DecimalMin(value="180", message="Duration must be at most 180")
+    @DecimalMax(value="180", message="Duration must be at most 180")
     private Integer duration;
     @NotNull(message="Questions ID cannot be null")
     private List<Integer> questionsId;

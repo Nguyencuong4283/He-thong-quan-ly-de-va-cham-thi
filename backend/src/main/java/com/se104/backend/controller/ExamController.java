@@ -1,6 +1,7 @@
 package com.se104.backend.controller;
 
 import com.se104.backend.dto.request.ExamCreateRequest;
+import com.se104.backend.dto.request.ExamUpdateRequest;
 import com.se104.backend.dto.response.ApiResponse;
 import com.se104.backend.dto.response.ExamDetailResponse;
 import com.se104.backend.dto.response.ExamListResponse;
@@ -37,6 +38,14 @@ public class ExamController {
         return ResponseEntity.ok(ApiResponse.<ExamDetailResponse>builder()
                 .success(true)
                 .data(examDetail)
+                .build());
+    }
+    @PutMapping("/{examId}")
+    public ResponseEntity<ApiResponse<ExamListResponse>> updateExam(@PathVariable int examId,@Valid @RequestBody ExamUpdateRequest examUpdateRequest){
+        ExamListResponse exam=examService.updateExam(examId,examUpdateRequest);
+        return ResponseEntity.ok(ApiResponse.<ExamListResponse>builder()
+                .success(true)
+                .data(exam)
                 .build());
     }
     @PostMapping

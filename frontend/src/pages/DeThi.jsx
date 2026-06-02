@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Table, Button, Card } from 'react-bootstrap';
+import examApi from '../api/examApi';
+import { mapExamList } from '../models/exam';
 
 const DeThi = () => {
-  const exams = [
-    { id: 'EX-IT007-2025-01', subject: 'Hệ điều hành', semester: 'Fall 2025', duration: '90 phút' },
-    { id: 'EX-IT005-2025-02', subject: 'Nhập môn mạng máy tính', semester: 'Fall 2025', duration: '60 phút' },
-    { id: 'EX-SS006-2025-01', subject: 'Pháp luật đại cương', semester: 'Spring 2026', duration: '60 phút' },
-  ];
+  const [exams, setExams] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await examApi.getExams();
+        if (res && res.success) {
+          setExams(mapExamList(res.data || []));
+        } else {
+          setExams([]);
+        }
+      } catch (err) {
+        console.error('Load exams error', err);
+        setExams([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   return (
     <Container fluid className="page-fade-in">
@@ -20,7 +39,6 @@ const DeThi = () => {
           <i className="bi bi-plus-lg"></i> Tạo đề thi mới
         </Button>
       </div>
-
       <Card className="border shadow-sm overflow-hidden">
         <Table responsive hover className="mb-0">
           <thead className="bg-light">
@@ -33,24 +51,34 @@ const DeThi = () => {
             </tr>
           </thead>
           <tbody>
-            {exams.map((exam) => (
-              <tr key={exam.id} className="align-middle">
-                <td className="px-4 py-3 fw-bold text-primary">{exam.id}</td>
-                <td className="px-4 py-3 fw-bold" style={{ color: 'var(--bs-body-color)' }}>{exam.subject}</td>
-                <td className="px-4 py-3 text-secondary fw-medium">{exam.semester}</td>
-                <td className="px-4 py-3 text-secondary fw-medium">{exam.duration}</td>
-                <td className="px-4 py-3 text-end">
-                  <div className="d-flex gap-2 justify-content-end">
-                    <Button variant="light" size="sm" className="border-0 rounded-3 text-primary p-2 shadow-xs" title="Xem chi tiết">
-                      <i className="bi bi-eye fs-5"></i>
-                    </Button>
-                    <Button as={Link} to={`/de-thi/chinh-sua/${exam.id}`} variant="light" size="sm" className="border-0 rounded-3 text-primary p-2 shadow-xs" title="Chỉnh sửa">
-                      <i className="bi bi-pencil-square fs-5"></i>
-                    </Button>
-                  </div>
-                </td>
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="text-center py-4">Đang tải danh sách đề thi...</td>
               </tr>
-            ))}
+            ) : exams.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-4 text-muted">Chưa có đề thi nào</td>
+              </tr>
+            ) : (
+              exams.map((exam) => (
+                <tr key={exam.examId} className="align-middle">
+                  <td className="px-4 py-3 fw-bold text-primary">{exam.examCode || exam.examId}</td>
+                  <td className="px-4 py-3 fw-bold" style={{ color: 'var(--bs-body-color)' }}>{exam.subjectName}</td>
+                  <td className="px-4 py-3 text-secondary fw-medium">{exam.semester} | {exam.year}</td>
+                  <td className="px-4 py-3 text-secondary fw-medium">{exam.duration ? `${exam.duration} phút` : '-'}</td>
+                  <td className="px-4 py-3 text-end">
+                    <div className="d-flex gap-2 justify-content-end">
+                      <Button variant="light" size="sm" className="border-0 rounded-3 text-primary p-2 shadow-xs" title="Xem chi tiết">
+                        <i className="bi bi-eye fs-5"></i>
+                      </Button>
+                      <Button as={Link} to={`/de-thi/chinh-sua/${exam.examId || exam.examCode}`} variant="light" size="sm" className="border-0 rounded-3 text-primary p-2 shadow-xs" title="Chỉnh sửa">
+                        <i className="bi bi-pencil-square fs-5"></i>
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </Table>
       </Card>

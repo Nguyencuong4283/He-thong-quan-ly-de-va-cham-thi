@@ -36,7 +36,7 @@ public class ExamService {
     private final SubjectRepository subjectRepository;
     private final QuestionRepository questionRepository;
     private final TeacherRepository teacherRepository;
-
+    private static final Logger log = LoggerFactory.getLogger(ExamService.class);
 
     public List<ExamListResponse> getAll(String subjectId, String semester, Integer year) {
         String teacherId= SecurityUtil.getCurrentTeacherId();
@@ -103,19 +103,27 @@ public class ExamService {
     }
     @Transactional
     public ExamListResponse updateExam(int examId, ExamUpdateRequest examUpdateRequest) {
-        String teacherId=SecurityUtil.getCurrentTeacherId();
-        Exam exam = examRepository.findById(examId)
-                .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
-        if (!exam.getTeacher().getTeacherId().equals(teacherId))
-            throw new BusinessException("Unauthorized access to exam");
-        List<Question> questions = questionRepository.findAllById(examUpdateRequest.getQuestionsId());
-        if (questions.size() != examUpdateRequest.getQuestionsId().size()) {
-            throw new EntityNotFoundException("Some questions not found");
+        try {
+            String teacherId=SecurityUtil.getCurrentTeacherId();
+            Exam exam = examRepository.findById(examId)
+                    .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
+            if (!exam.getTeacher().getTeacherId().equals(teacherId))
+                throw new BusinessException("Unauthorized access to exam");
+            List<Question> questions = questionRepository.findAllById(examUpdateRequest.getQuestionsId());
+            if (questions.size() != examUpdateRequest.getQuestionsId().size()) {
+                throw new EntityNotFoundException("Some questions not found");
+            }
+            exam.setDuration(examUpdateRequest.getDuration());
+            log.info("Before clear: examQuestions size");
+            exam.getExamQuestions().clear();
+            exam.getExamQuestions().addAll(buildExamQuestions(exam, questions));
+            examRepository.saveAndFlush(exam);
+            return examToExamListResponse(exam);
         }
-        exam.setDuration(examUpdateRequest.getDuration());
-        exam.getExamQuestions().clear();
-        exam.getExamQuestions().addAll(buildExamQuestions(exam, questions));
-        return examToExamListResponse(exam);
+        catch (EntityNotFoundException e) {
+            log.error("LOI ROI CAC CHAU OI");
+            throw e;
+        }
     }
     private QuestionDetailResponse questionToQuestionDetailResponse(Question question) {
         return QuestionDetailResponse.builder()

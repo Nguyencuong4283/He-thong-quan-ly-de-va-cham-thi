@@ -5,9 +5,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import './index.css';
 import App from './App';
 
-// Thiết lập người dùng mặc định để bỏ qua đăng nhập
-localStorage.setItem('isAuthenticated', 'true');
-localStorage.setItem('userEmail', 'admin@uit.edu.vn');
+// Do not auto-authenticate on startup. Remove any default login values.
+// If you need to auto-login for development, uncomment and set explicit test credentials here.
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

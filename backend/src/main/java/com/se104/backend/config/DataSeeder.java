@@ -83,6 +83,64 @@ public class DataSeeder implements CommandLineRunner {
         ts3.setTeacher(teacher);
         ts3.setSubject(subject3);
         teacherSubjectRepository.save(ts3);
+        //Them 1 giang vien nua
+        // ===== Tạo thêm môn học =====
+        Subject subject4 = Subject.builder()
+                .subjectId("SS001")
+                .subjectName("Triết học Mác - Lênin")
+                .build();
 
+        Subject subject5 = Subject.builder()
+                .subjectId("SS008")
+                .subjectName("Kinh tế Chính trị Mác - Lênin")
+                .build();
+
+        subjectRepository.save(subject4);
+        subjectRepository.save(subject5);
+
+// ===== Tạo giảng viên GV002 =====
+        Teacher teacher2 = Teacher.builder()
+                .teacherId("GV002")
+                .fullName("Tran Thi B")
+                .password(passwordEncoder.encode("123456"))
+                .build();
+
+        teacherRepository.save(teacher2);
+
+// ===== GV002 dạy SS001 =====
+        TeacherSubject ts4 = new TeacherSubject();
+        TeacherSubjectId id4 = new TeacherSubjectId();
+        id4.setTeacherId("GV002");
+        id4.setSubjectId("SS001");
+
+        ts4.setId(id4);
+        ts4.setTeacher(teacher2);
+        ts4.setSubject(subject4);
+
+        teacherSubjectRepository.save(ts4);
+
+// ===== GV002 dạy SS008 =====
+        TeacherSubject ts5 = new TeacherSubject();
+        TeacherSubjectId id5 = new TeacherSubjectId();
+        id5.setTeacherId("GV002");
+        id5.setSubjectId("SS008");
+
+        ts5.setId(id5);
+        ts5.setTeacher(teacher2);
+        ts5.setSubject(subject5);
+
+        teacherSubjectRepository.save(ts5);
+
+// ===== GV002 dạy thêm môn SE104 =====
+        TeacherSubject ts6 = new TeacherSubject();
+        TeacherSubjectId id6 = new TeacherSubjectId();
+        id6.setTeacherId("GV002");
+        id6.setSubjectId("SE104");
+
+        ts6.setId(id6);
+        ts6.setTeacher(teacher2);
+        ts6.setSubject(subject);
+
+        teacherSubjectRepository.save(ts6);
     }
 }

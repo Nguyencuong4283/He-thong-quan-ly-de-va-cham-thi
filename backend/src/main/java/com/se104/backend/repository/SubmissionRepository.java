@@ -9,6 +9,9 @@ import java.util.List;
 @Repository
 public interface SubmissionRepository extends JpaRepository<Submission, Integer> {
     List<Submission> findByClazz_ClassId(String classId);
-    List<Submission> findByClazz_Year(Integer year);
+    List<Submission> findByClazz_YearAndClazz_Teacher_TeacherId(
+            Integer year,
+            String teacherId
+    );
     boolean existsByClazz_ClassIdAndStudent_StudentId(String classId, String studentId);
 }

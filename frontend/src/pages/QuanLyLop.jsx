@@ -1,53 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Table, Button } from 'react-bootstrap';
+import classApi from '../api/classApi';
 
 const QuanLyLop = () => {
-  const classes = [
-    {
-      id: 'CLASS-001',
-      name: 'IT007.N11',
-      subject: 'Hệ điều hành',
-      teacher: 'TS. Nguyễn Văn X',
-      totalStudents: 45,
-      assignedExam: 'EX-IT007-2025-01',
-      gradedCount: 32,
-      pendingCount: 13,
-    },
-    {
-      id: 'CLASS-002',
-      name: 'IT005.N12',
-      subject: 'Nhập môn mạng máy tính',
-      teacher: 'TS. Nguyễn Văn X',
-      totalStudents: 50,
-      assignedExam: 'EX-IT005-2025-02',
-      gradedCount: 48,
-      pendingCount: 2,
-    },
-    {
-      id: 'CLASS-003',
-      name: 'SS006.N13',
-      subject: 'Pháp luật đại cương',
-      teacher: 'TS. Trần Thị Y',
-      totalStudents: 40,
-      assignedExam: 'EX-SS006-2025-01',
-      gradedCount: 15,
-      pendingCount: 25,
-    },
-    {
-      id: 'CLASS-004',
-      name: 'IT001.N14',
-      subject: 'Lập trình hướng đối tượng',
-      teacher: 'TS. Nguyễn Văn X',
-      totalStudents: 38,
-      assignedExam: null,
-      gradedCount: 0,
-      pendingCount: 0,
-    },
-  ];
+  const [classes, setClasses] = useState([]);
+  const [meta, setMeta] = useState({ totalClass: 0, totalStudent: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const totalClasses = classes.length;
-  const totalStudents = classes.reduce((sum, c) => sum + c.totalStudents, 0);
+  useEffect(() => {
+    const loadClasses = async () => {
+      setLoading(true);
+      try {
+        const res = await classApi.getClasses();
+        if (res && res.success) {
+          setClasses(res.data || []);
+          setMeta(res.meta || { totalClass: 0, totalStudent: 0 });
+        }
+      } catch (err) {
+        console.error('Fetch classes error', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadClasses();
+  }, []);
+
+  const totalClasses = meta.totalClass;
+  const totalStudents = meta.totalStudent;
 
   return (
     <Container fluid className="page-fade-in">
@@ -67,7 +47,7 @@ const QuanLyLop = () => {
             <div className="card-body p-4 position-relative z-1">
               <h6 className="text-white text-opacity-80 text-uppercase fw-bold small mb-4" style={{ letterSpacing: '1px' }}>Tổng số lớp học</h6>
               <div className="d-flex align-items-end gap-3 mb-4">
-                <h1 className="display-4 fw-bold mb-0">0{totalClasses}</h1>
+                <h1 className="display-4 fw-bold mb-0">{totalClasses < 10 ? `0${totalClasses}` : totalClasses}</h1>
                 <span className="stat-badge-light">Đang đào tạo</span>
               </div>
               <Button as={Link} to="/quan-ly-lop/them-moi" variant="light" className="rounded-pill px-4 fw-bold text-primary shadow-sm border-0">
@@ -112,26 +92,26 @@ const QuanLyLop = () => {
           </thead>
           <tbody>
             {classes.map((cls) => (
-              <tr key={cls.id} className="align-middle">
-                <td className="px-4 py-3 fw-bold text-primary">{cls.name}</td>
-                <td className="px-4 py-3 fw-bold" style={{ color: 'var(--bs-body-color)' }}>{cls.subject}</td>
+              <tr key={cls.classId || cls.id} className="align-middle">
+                <td className="px-4 py-3 fw-bold text-primary">{cls.name || cls.className}</td>
+                <td className="px-4 py-3 fw-bold" style={{ color: 'var(--bs-body-color)' }}>{cls.subjectName || cls.subject}</td>
                 <td className="px-4 py-3 text-center">
-                  <span className="fw-bold" style={{ color: 'var(--bs-body-color)' }}>{cls.totalStudents}</span>
+                  <span className="fw-bold" style={{ color: 'var(--bs-body-color)' }}>{cls.totalStudent || cls.totalStudents}</span>
                 </td>
                 <td className="px-4 py-3">
-                  {cls.assignedExam ? (
-                    <span className="badge bg-info bg-opacity-15 text-info fw-bold rounded-2 px-2 py-1.5 border border-info border-opacity-20">{cls.assignedExam}</span>
+                  {cls.examCode || cls.assignedExam ? (
+                    <span className="badge bg-primary text-white fw-bold rounded-2 px-2 py-1.5 shadow-sm" style={{ letterSpacing: '0.5px' }}>{cls.examCode || cls.assignedExam}</span>
                   ) : (
                     <span className="text-secondary small italic opacity-75 fw-medium">Chưa gán đề</span>
                   )}
                 </td>
                 <td className="px-4 py-3 text-end">
                   <div className="d-flex gap-2 justify-content-end">
-                    <Button as={Link} to={`/quan-ly-lop/chi-tiet/${cls.id}`} variant="light" size="sm" className="border fw-bold rounded-3 text-dark px-3 hover-shadow-sm">
+                    <Button as={Link} to={`/quan-ly-lop/chi-tiet/${cls.classId || cls.id}`} variant="light" size="sm" className="border fw-bold rounded-3 text-dark px-3 hover-shadow-sm">
                       Chi tiết
                     </Button>
-                    {cls.assignedExam && (
-                      <Button as={Link} to={`/cham-thi/danh-sach/${cls.id}`} className="btn-success border-0 rounded-3 px-3 shadow-sm d-flex align-items-center gap-2">
+                    {(cls.examCode || cls.assignedExam) && (
+                      <Button as={Link} to={`/cham-thi/danh-sach/${cls.classId || cls.id}`} className="btn-success border-0 rounded-3 px-3 shadow-sm d-flex align-items-center gap-2">
                         <i className="bi bi-pencil-square"></i> Chấm thi
                       </Button>
                     )}

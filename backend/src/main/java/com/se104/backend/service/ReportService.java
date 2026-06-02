@@ -6,6 +6,7 @@ import com.se104.backend.entity.Submission;
 import com.se104.backend.repository.ClazzRepository;
 import com.se104.backend.repository.ExamRepository;
 import com.se104.backend.repository.SubmissionRepository;
+import com.se104.backend.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +23,10 @@ public class ReportService {
     private final SubmissionRepository submissionRepository;
     private static final Logger log = LoggerFactory.getLogger(ReportService.class);
     public DashboardReportResponse getDashboardReport(Integer year) {
-        Integer totalClasses = clazzRepository.countByYear(year);
-        Integer totalExams = examRepository.countByYear(year);
-        List<Submission> submissions=submissionRepository.findByClazz_Year(year);
+        String teacherId= SecurityUtil.getCurrentTeacherId();
+        Integer totalClasses = clazzRepository.countByYearAndTeacher_TeacherId(year,teacherId);
+        Integer totalExams = examRepository.countByYearAndTeacher_TeacherId(year,teacherId);
+        List<Submission> submissions=submissionRepository.findByClazz_YearAndClazz_Teacher_TeacherId(year,teacherId);
         List<ClassReportItem> submissionRates=null;
         List<ClassReportItem> averageScores=null;
         if (!submissions.isEmpty())
@@ -45,6 +47,7 @@ public class ReportService {
     {
         //Cho nay neu muon co the sua thanh query add vao repo cung duoc
         return submissions.stream()
+                .filter(Submission::isStatus)
                 .collect(Collectors.groupingBy(s -> s.getClazz().getClassId()))
                 .entrySet()
                 .stream()

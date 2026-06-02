@@ -1,38 +1,72 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import reportApi from '../api/reportApi';
 
-const dataByYear = {
-  '2024': {
-    submissionRate: [
-      { id: '2024-sub-1', className: 'IT007.N11', rate: 82 },
-      { id: '2024-sub-2', className: 'IT005.N12', rate: 89 },
-      { id: '2024-sub-3', className: 'SS006.N13', rate: 75 },
-    ],
-    avgScore: [
-      { id: '2024-avg-1', className: 'IT007.N11', avgScore: 7.9 },
-      { id: '2024-avg-2', className: 'IT005.N12', avgScore: 7.5 },
-      { id: '2024-avg-3', className: 'SS006.N13', avgScore: 8.2 },
-    ],
-  },
-  '2025': {
-    submissionRate: [
-      { id: '2025-sub-1', className: 'IT007.N11', rate: 85 },
-      { id: '2025-sub-2', className: 'IT005.N12', rate: 92 },
-      { id: '2025-sub-3', className: 'SS006.N13', rate: 78 },
-    ],
-    avgScore: [
-      { id: '2025-avg-1', className: 'IT007.N11', avgScore: 8.2 },
-      { id: '2025-avg-2', className: 'IT005.N12', avgScore: 7.8 },
-      { id: '2025-avg-3', className: 'SS006.N13', avgScore: 8.5 },
-    ],
-  },
+const defaultDashboard = {
+  totalClasses: 0,
+  totalExams: 0,
+  submissionRates: [],
+  averageScores: [],
 };
 
 const Home = () => {
-  const [selectedYear, setSelectedYear] = useState('2025');
-  const currentData = dataByYear[selectedYear] || dataByYear['2024'];
+  // Tự động sinh danh sách năm từ 2024 đến hiện tại
+  const startYear = 2024;
+  const currentYear = new Date().getFullYear();
+  const availableYears = Array.from(
+    { length: currentYear - startYear + 1 },
+    (_, i) => (startYear + i).toString()
+  ).reverse(); // Đảo ngược để năm mới nhất hiện lên đầu
+
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
+  const [dashboard, setDashboard] = useState(defaultDashboard);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const submissionRateData = dashboard.submissionRates;
+  const avgScoreData = dashboard.averageScores;
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await reportApi.getDashboard(selectedYear);
+        if (res.success) {
+          setDashboard({
+            totalClasses: res.data.totalClasses ?? res.data.total_classes ?? 0,
+            totalExams: res.data.totalExams ?? res.data.total_exams ?? 0,
+            submissionRates: Array.isArray(res.data.submissionRates)
+              ? res.data.submissionRates.map((item, index) => ({
+                  id: item.classId ?? item.className ?? `submission-${index}`,
+                  className: item.className ?? item.classId ?? item.class ?? `Lớp ${index + 1}`,
+                  rate: item.value ?? item.rate ?? 0,
+                }))
+              : [],
+            averageScores: Array.isArray(res.data.averageScores)
+              ? res.data.averageScores.map((item, index) => ({
+                  id: item.classId ?? item.className ?? `avg-${index}`,
+                  className: item.className ?? item.classId ?? item.class ?? `Lớp ${index + 1}`,
+                  avgScore: item.value ?? item.average ?? item.avgScore ?? 0,
+                }))
+              : [],
+          });
+        } else {
+          setError(res.message || 'Không thể tải dữ liệu dashboard');
+          setDashboard(defaultDashboard);
+        }
+      } catch (err) {
+        setError(err.message || 'Lỗi khi tải dashboard');
+        setDashboard(defaultDashboard);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, [selectedYear]);
 
   return (
     <Container fluid className="page-fade-in">
@@ -50,20 +84,27 @@ const Home = () => {
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
           >
-            <option value="2024">2024</option>
-            <option value="2025">2025</option>
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
           </Form.Select>
+          {loading && <Spinner animation="border" size="sm" className="text-primary" />}
         </div>
       </div>
 
+      {error && (
+        <Alert variant="danger" className="mb-4">
+          {error}
+        </Alert>
+      )}
       <Row className="mb-5 g-4">
         <Col md={6}>
           <Card className="border-0 shadow-sm h-100 overflow-hidden bg-primary">
             <div className="card-body p-4 position-relative z-1 text-white">
               <h6 className="text-white text-opacity-75 text-uppercase fw-bold small mb-4" style={{ letterSpacing: '1px' }}>Lớp học đang quản lý</h6>
               <div className="d-flex align-items-end gap-3 mb-4">
-                <h1 className="display-4 fw-bold mb-0">12</h1>
-                <span className="stat-badge stat-badge-primary">+2 lớp mới</span>
+                <h1 className="display-4 fw-bold mb-0">{dashboard.totalClasses}</h1>
+                <span className="stat-badge stat-badge-primary">Năm {selectedYear}</span>
               </div>
               <Button as={Link} to="/quan-ly-lop" variant="light" className="rounded-pill px-4 fw-bold text-primary shadow-sm border-0">
                 Xem danh sách lớp <i className="bi bi-arrow-right ms-2"></i>
@@ -78,8 +119,8 @@ const Home = () => {
             <div className="card-body p-4 position-relative z-1 text-white">
               <h6 className="text-white text-opacity-75 text-uppercase fw-bold small mb-4" style={{ letterSpacing: '1px' }}>Tổng số đề thi</h6>
               <div className="d-flex align-items-end gap-3 mb-4">
-                <h1 className="display-4 fw-bold mb-0">34</h1>
-                <span className="stat-badge stat-badge-success">15 bản nháp</span>
+                <h1 className="display-4 fw-bold mb-0">{dashboard.totalExams}</h1>
+                <span className="stat-badge stat-badge-success">Năm {selectedYear}</span>
               </div>
               <Button as={Link} to="/de-thi" variant="light" className="rounded-pill px-4 fw-bold text-success shadow-sm border-0">
                 Quản lý đề thi <i className="bi bi-arrow-right ms-2"></i>
@@ -104,7 +145,7 @@ const Home = () => {
               <h6 className="text-center mb-4 fw-bold text-secondary text-uppercase small" style={{ letterSpacing: '1px' }}>Tỷ lệ nộp bài (%)</h6>
               <div style={{ width: '100%', height: 300 }}>
                 <ResponsiveContainer>
-                  <BarChart data={currentData.submissionRate}>
+                  <BarChart data={submissionRateData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
                     <XAxis dataKey="className" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
@@ -123,7 +164,7 @@ const Home = () => {
               <h6 className="text-center mb-4 fw-bold text-secondary text-uppercase small" style={{ letterSpacing: '1px' }}>Điểm trung bình (Hệ 10)</h6>
               <div style={{ width: '100%', height: 300 }}>
                 <ResponsiveContainer>
-                  <BarChart data={currentData.avgScore}>
+                  <BarChart data={avgScoreData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
                     <XAxis dataKey="className" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />

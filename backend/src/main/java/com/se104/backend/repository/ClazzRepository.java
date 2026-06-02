@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface ClazzRepository extends JpaRepository<Clazz, String> {
     List<Clazz> findAllByTeacher_TeacherId(String teacherId);
-    Integer countByYear(Integer year);
+    Integer countByYearAndTeacher_TeacherId(Integer year,String teacherId);
 }
