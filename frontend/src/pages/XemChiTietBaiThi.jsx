@@ -9,22 +9,45 @@ const XemChiTietBaiThi = () => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    // Mock load
-    setTimeout(() => {
-      setData({
-        id: id,
-        examName: 'Hệ điều hành',
-        student: 'Trần Thị B',
-        studentId: 'SV002',
-        submitted: '25/04/2026',
-        score: 8.5,
-        scoreText: 'Tám phẩy năm',
-        comments: 'Làm bài rất tốt, chữ viết rõ ràng.',
-        gradedBy: 'TS. Nguyễn Văn X',
-        gradedDate: '26/04/2026 16:00',
+    fetch(`/api/submission/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success && resData.data) {
+          const sub = resData.data;
+          setData({
+            id: sub.submissionId,
+            examName: sub.classId, // Fallback to class ID since backend doesn't return subjectName here directly
+            student: sub.studentName,
+            studentId: sub.studentId,
+            submitted: '25/04/2026',
+            score: sub.score !== undefined && sub.score !== null ? sub.score : null,
+            scoreText: sub.scoreText || 'Chưa ghi bằng chữ',
+            comments: sub.note || '',
+            gradedBy: 'Giảng viên',
+            gradedDate: 'Hôm nay'
+          });
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.warn('Backend Submission API is not available, using mock data:', err.message);
+        setData({
+          id: id,
+          examName: 'Hệ điều hành',
+          student: 'Trần Thị B',
+          studentId: 'SV002',
+          submitted: '25/04/2026',
+          score: 8.5,
+          scoreText: 'Tám phẩy năm',
+          comments: 'Làm bài rất tốt, chữ viết rõ ràng.',
+          gradedBy: 'TS. Nguyễn Văn X',
+          gradedDate: '26/04/2026 16:00',
+        });
+        setLoading(false);
       });
-      setLoading(false);
-    }, 500);
   }, [id]);
 
   if (loading) return <Container className="py-5 text-center"><p>Đang tải...</p></Container>;
@@ -32,9 +55,19 @@ const XemChiTietBaiThi = () => {
   return (
     <Container fluid>
       <div className="mb-4">
-        <Button variant="link" onClick={() => navigate(-1)} className="p-0 text-muted text-decoration-none mb-2">
-          <i className="bi bi-arrow-left"></i> Quay lại
-        </Button>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <Button variant="link" onClick={() => navigate(-1)} className="p-0 text-muted text-decoration-none">
+            <i className="bi bi-arrow-left"></i> Quay lại
+          </Button>
+          <Button 
+            variant="warning" 
+            onClick={() => navigate(`/cham-thi/cham-diem/${data.id}`)}
+            className="fw-bold d-flex align-items-center gap-2 shadow-sm text-dark px-3 py-1.5"
+            size="sm"
+          >
+            <i className="bi bi-pencil-square"></i> Sửa điểm bài thi
+          </Button>
+        </div>
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h2 className="fw-bold text-dark mb-1">CHI TIẾT ĐIỂM BÀI THI</h2>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { fetchWithTimeout } from '../utils/api';
 
 const dataByYear = {
   '2024': {
@@ -32,7 +33,64 @@ const dataByYear = {
 
 const Home = () => {
   const [selectedYear, setSelectedYear] = useState('2025');
-  const currentData = dataByYear[selectedYear] || dataByYear['2024'];
+  const [totalClasses, setTotalClasses] = useState(12);
+  const [totalExams, setTotalExams] = useState(34);
+  const [currentData, setCurrentData] = useState(dataByYear['2025']);
+
+  useEffect(() => {
+    Promise.all([
+      fetchWithTimeout(`/api/report/dashboard?year=${selectedYear}`).then(res => {
+        if (!res.ok) throw new Error('Report API error');
+        return res.json();
+      }),
+      fetchWithTimeout('/api/classes').then(res => {
+        if (!res.ok) throw new Error('Classes API error');
+        return res.json();
+      })
+    ])
+      .then(([reportRes, classesRes]) => {
+        if (reportRes.success && reportRes.data && classesRes.success && classesRes.data) {
+          const report = reportRes.data;
+          const classes = classesRes.data;
+          
+          setTotalClasses(report.totalClasses || 0);
+          setTotalExams(report.totalExams || 0);
+
+          const yearInt = parseInt(selectedYear, 10);
+          const activeClasses = classes.filter(c => c.year === yearInt);
+
+          const mappedSubRates = activeClasses.map((c, idx) => {
+            const subRateItem = (report.submissionRates || []).find(item => item.classId === c.classId);
+            return {
+              id: `${selectedYear}-sub-${idx}`,
+              className: c.name || c.classId,
+              rate: subRateItem ? Math.round(subRateItem.value) : 0
+            };
+          });
+
+          const mappedAvgScores = activeClasses.map((c, idx) => {
+            const avgScoreItem = (report.averageScores || []).find(item => item.classId === c.classId);
+            return {
+              id: `${selectedYear}-avg-${idx}`,
+              className: c.name || c.classId,
+              avgScore: avgScoreItem ? parseFloat(avgScoreItem.value.toFixed(1)) : 0.0
+            };
+          });
+
+          setCurrentData({
+            submissionRate: mappedSubRates,
+            avgScore: mappedAvgScores
+          });
+        }
+      })
+      .catch(err => {
+        console.warn('Backend API report is not available, using mock statistics:', err.message);
+        // Fallback to static mock data
+        setTotalClasses(selectedYear === '2025' ? 12 : 10);
+        setTotalExams(selectedYear === '2025' ? 34 : 28);
+        setCurrentData(dataByYear[selectedYear] || dataByYear['2024']);
+      });
+  }, [selectedYear]);
 
   return (
     <Container fluid className="page-fade-in">
@@ -62,7 +120,7 @@ const Home = () => {
             <div className="card-body p-4 position-relative z-1 text-white">
               <h6 className="text-white text-opacity-75 text-uppercase fw-bold small mb-4" style={{ letterSpacing: '1px' }}>Lớp học đang quản lý</h6>
               <div className="d-flex align-items-end gap-3 mb-4">
-                <h1 className="display-4 fw-bold mb-0">12</h1>
+                <h1 className="display-4 fw-bold mb-0">{totalClasses}</h1>
                 <span className="stat-badge stat-badge-primary">+2 lớp mới</span>
               </div>
               <Button as={Link} to="/quan-ly-lop" variant="light" className="rounded-pill px-4 fw-bold text-primary shadow-sm border-0">
@@ -78,7 +136,7 @@ const Home = () => {
             <div className="card-body p-4 position-relative z-1 text-white">
               <h6 className="text-white text-opacity-75 text-uppercase fw-bold small mb-4" style={{ letterSpacing: '1px' }}>Tổng số đề thi</h6>
               <div className="d-flex align-items-end gap-3 mb-4">
-                <h1 className="display-4 fw-bold mb-0">34</h1>
+                <h1 className="display-4 fw-bold mb-0">{totalExams}</h1>
                 <span className="stat-badge stat-badge-success">15 bản nháp</span>
               </div>
               <Button as={Link} to="/de-thi" variant="light" className="rounded-pill px-4 fw-bold text-success shadow-sm border-0">

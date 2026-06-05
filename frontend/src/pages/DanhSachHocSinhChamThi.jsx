@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Container, Card, Table, Button, Form, Badge } from 'react-bootstrap';
 
@@ -8,12 +8,59 @@ const DanhSachHocSinhChamThi = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
-  const students = [
-    { id: 'SV-001', submissionId: 'SUB-001', name: 'Nguyễn Văn A', status: 'Chưa chấm', score: null },
-    { id: 'SV-002', submissionId: 'SUB-002', name: 'Trần Thị B', status: 'Đã chấm', score: 8.5 },
-    { id: 'SV-003', submissionId: 'SUB-003', name: 'Lê Văn C', status: 'Chưa chấm', score: null },
-    { id: 'SV-004', submissionId: 'SUB-004', name: 'Phạm Thị D', status: 'Đã chấm', score: 9.0 },
-  ];
+  const [students, setStudents] = useState([]);
+  const [examCode, setExamCode] = useState('EX-IT007-2025-01');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // 1. Fetch class details to get the exam code
+    fetch(`/api/classes/${id}/students`)
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && resData.data) {
+          setExamCode(resData.data.examCode || 'Chưa gán đề thi');
+        }
+      })
+      .catch(err => console.warn('Failed to fetch class info in DanhSachHocSinhChamThi:', err.message));
+
+    // 2. Fetch submissions
+    fetch(`/api/classes/${id}/submission`)
+      .then(res => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then(resData => {
+        const mockList = [
+          { id: 'SV-001', submissionId: 'SUB-001', name: 'Nguyễn Văn A', status: 'Chưa chấm', score: null },
+          { id: 'SV-002', submissionId: 'SUB-002', name: 'Trần Thị B', status: 'Đã chấm', score: 8.5 },
+          { id: 'SV-003', submissionId: 'SUB-003', name: 'Lê Văn C', status: 'Chưa chấm', score: null },
+          { id: 'SV-004', submissionId: 'SUB-004', name: 'Phạm Thị D', status: 'Đã chấm', score: 9.0 },
+        ];
+        if (resData.success && resData.data) {
+          const mapped = resData.data.map(sub => ({
+            id: sub.studentId,
+            submissionId: sub.submissionId,
+            name: sub.fullName,
+            status: sub.status ? 'Đã chấm' : 'Chưa chấm',
+            score: sub.score !== undefined && sub.score !== null ? sub.score : null
+          }));
+          setStudents(mapped.length > 0 ? mapped : mockList);
+        } else {
+          setStudents(mockList);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.warn('Backend submissions API is not available, using mock data:', err.message);
+        setStudents([
+          { id: 'SV-001', submissionId: 'SUB-001', name: 'Nguyễn Văn A', status: 'Chưa chấm', score: null },
+          { id: 'SV-002', submissionId: 'SUB-002', name: 'Trần Thị B', status: 'Đã chấm', score: 8.5 },
+          { id: 'SV-003', submissionId: 'SUB-003', name: 'Lê Văn C', status: 'Chưa chấm', score: null },
+          { id: 'SV-004', submissionId: 'SUB-004', name: 'Phạm Thị D', status: 'Đã chấm', score: 9.0 },
+        ]);
+        setLoading(false);
+      });
+  }, [id]);
 
   const filtered = students.filter(s => {
     return (s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.id.includes(searchTerm)) &&
@@ -27,7 +74,7 @@ const DanhSachHocSinhChamThi = () => {
           <i className="bi bi-arrow-left"></i> Quay lại Danh sách lớp
         </Button>
         <h2 className="fw-bold mb-1" style={{ color: '#000000' }}>Danh sách chấm thi</h2>
-        <p className="text-secondary small fw-bold">Lớp: <span className="text-primary">{id}</span> | Mã đề: <span className="text-info">EX-IT007-2025-01</span></p>
+        <p className="text-secondary small fw-bold">Lớp: <span className="text-primary">{id}</span> | Mã đề: <span className="text-info">{examCode}</span></p>
       </div>
 
       <Card className="border shadow-sm p-3 mb-4">
@@ -64,7 +111,7 @@ const DanhSachHocSinhChamThi = () => {
               <th className="px-4 py-3 border-0 text-dark">Họ tên học sinh</th>
               <th className="px-4 py-3 border-0 text-center text-dark">Trạng thái</th>
               <th className="px-4 py-3 border-0 text-center text-dark">Điểm số</th>
-              <th className="px-4 py-3 border-0 text-end text-dark">Thao tác</th>
+              <th className="px-4 py-3 border-0 text-end text-dark" style={{ minWidth: '220px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -81,15 +128,36 @@ const DanhSachHocSinhChamThi = () => {
                 <td className="px-4 py-3 text-center fw-bold fs-5" style={{ color: s.score !== null ? '#16a34a' : '#64748b' }}>
                   {s.score !== null ? `${s.score}/10` : '--'}
                 </td>
-                <td className="px-4 py-3 text-end">
-                  <Button 
-                    as={Link} 
-                    to={s.status === 'Đã chấm' ? `/cham-thi/xem-chi-tiet/${s.submissionId}` : `/cham-thi/cham-diem/${s.submissionId}`}
-                    className={`fw-bold px-4 rounded-3 shadow-sm ${s.status === 'Đã chấm' ? 'btn-outline-dark border-2' : 'btn-primary'}`}
-                    size="sm"
-                  >
-                    {s.status === 'Đã chấm' ? 'Xem lại' : 'Chấm ngay'}
-                  </Button>
+                <td className="px-4 py-3 text-end" style={{ whiteSpace: 'nowrap' }}>
+                  {s.status === 'Đã chấm' ? (
+                    <div className="d-flex gap-2 justify-content-end">
+                      <Button 
+                        as={Link} 
+                        to={`/cham-thi/xem-chi-tiet/${s.submissionId}`}
+                        className="fw-bold px-3 rounded-3 shadow-sm btn-outline-dark border-2"
+                        size="sm"
+                      >
+                        Xem lại
+                      </Button>
+                      <Button 
+                        as={Link} 
+                        to={`/cham-thi/cham-diem/${s.submissionId}`}
+                        className="fw-bold px-3 rounded-3 shadow-sm btn-warning text-dark"
+                        size="sm"
+                      >
+                        <i className="bi bi-pencil-square me-1"></i> Sửa điểm
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button 
+                      as={Link} 
+                      to={`/cham-thi/cham-diem/${s.submissionId}`}
+                      className="fw-bold px-4 rounded-3 shadow-sm btn-primary"
+                      size="sm"
+                    >
+                      Chấm ngay
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}

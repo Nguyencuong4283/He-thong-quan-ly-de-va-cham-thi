@@ -1,12 +1,11 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Container, Nav, Navbar, Button } from 'react-bootstrap';
-import { useTheme } from '../context/ThemeContext';
 
 const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const theme = 'light';
   
   const userEmail = localStorage.getItem('userEmail') || 'admin@uit.edu.vn';
   const userName = 'TS. Nguyễn Văn X';
@@ -22,6 +21,8 @@ const Layout = ({ children }) => {
     { to: '/de-thi', label: 'Quản lý đề thi', icon: 'bi-file-earmark-text-fill' },
     { to: '/ngan-hang-cau-hoi', label: 'Ngân hàng câu hỏi', icon: 'bi-database-fill' },
     { to: '/quan-ly-lop', label: 'Lớp học & Chấm thi', icon: 'bi-person-badge-fill' },
+    { to: '/bao-cao', label: 'Báo cáo thống kê', icon: 'bi-bar-chart-line-fill' },
+    { to: '/cai-dat', label: 'Cài đặt hệ thống', icon: 'bi-gear-fill' },
   ];
 
   const isActive = (path) => {
@@ -99,21 +100,6 @@ const Layout = ({ children }) => {
             </h4>
             
             <div className="d-flex align-items-center gap-4">
-              {/* Nút Theme Toggle */}
-              <div 
-                className="theme-toggle-btn border shadow-sm" 
-                onClick={toggleTheme}
-                title="Đổi giao diện"
-                style={{ 
-                  cursor: 'pointer', width: '42px', height: '42px', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                  borderRadius: '12px', backgroundColor: 'var(--surface-color)',
-                  color: 'var(--bs-secondary-color)', transition: 'all 0.3s'
-                }}
-              >
-                <i className={`bi bi-${theme === 'light' ? 'moon-stars-fill' : 'sun-fill'} fs-5`}></i>
-              </div>
-
               {/* Tên tài khoản */}
               <div className="d-flex align-items-center gap-2 px-3 py-2 bg-body-secondary rounded-4 border shadow-xs">
                 <div className="avatar-square shadow-sm" style={{ width: '28px', height: '28px', borderRadius: '8px' }}>{userName.charAt(0)}</div>

@@ -19,5 +19,8 @@ yarn-error.log*
 # OS
 .DS_Store
 
+# Playwright E2E Tests (ignored to prevent pushing to repo)
+frontend/playwright-tests/
+
 # Optional
 .github/

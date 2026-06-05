@@ -1,19 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Card, Form, Button, Row, Col } from 'react-bootstrap';
+import { fetchWithTimeout } from '../utils/api';
 
 const ThemLop = () => {
   const navigate = useNavigate();
-  const subjects = ['Hệ điều hành', 'Mạng máy tính', 'Pháp luật', 'Lập trình hướng đối tượng'];
-
+  const [subjects, setSubjects] = useState([]);
   const [formData, setFormData] = useState({
+    classId: '',
     name: '',
-    subject: '',
+    subjectId: '',
     semester: '',
     year: '',
   });
 
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    // Tải danh sách môn học từ backend với timeout
+    fetchWithTimeout('/api/teacher/subjects')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && resData.data) {
+          setSubjects(resData.data.map(sub => ({
+            id: sub.subjectId,
+            name: `${sub.subjectId} - ${sub.subjectName}`
+          })));
+        }
+      })
+      .catch(err => {
+        console.warn('Backend subjects API failed in ThemLop, using fallback:', err.message);
+        setSubjects([
+          { id: 'IT007', name: 'IT007 - Hệ điều hành' },
+          { id: 'IT005', name: 'IT005 - Mạng máy tính' },
+          { id: 'SS006', name: 'SS006 - Pháp luật' },
+          { id: 'IT001', name: 'IT001 - Lập trình hướng đối tượng' },
+        ]);
+      });
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -22,12 +46,76 @@ const ThemLop = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.subject) {
-      setErrors({ name: !formData.name ? 'Vui lòng nhập mã lớp' : '', subject: !formData.subject ? 'Vui lòng chọn môn học' : '' });
+    if (!formData.classId || !formData.name || !formData.subjectId || !formData.semester || !formData.year) {
+      setErrors({
+        classId: !formData.classId ? 'Vui lòng nhập Mã lớp (VD: CLASS-005)' : '',
+        name: !formData.name ? 'Vui lòng nhập Tên lớp (VD: IT007.N11)' : '',
+        subjectId: !formData.subjectId ? 'Vui lòng chọn môn học' : '',
+        semester: !formData.semester ? 'Vui lòng chọn học kỳ' : '',
+        year: !formData.year ? 'Vui lòng nhập năm học' : ''
+      });
       return;
     }
-    alert('Lớp học đã được tạo thành công!');
-    navigate('/quan-ly-lop');
+
+    // Gửi yêu cầu tạo lớp học đến backend
+    const cleanYear = parseInt(formData.year.split('-')[0]) || 2026;
+    
+    fetchWithTimeout('/api/classes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        classId: formData.classId,
+        name: formData.name,
+        semester: formData.semester,
+        year: cleanYear,
+        subjectId: formData.subjectId
+      })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Create class error');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success) {
+          alert('Lớp học đã được tạo thành công!');
+          navigate('/quan-ly-lop');
+        } else {
+          alert('Không thể tạo lớp học: ' + resData.message);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend Class Creation failed, using fallback:', err.message);
+        
+        // Save new class to mock localStorage database
+        const defaultClasses = [
+          { id: 'CLASS-001', name: 'IT007.N11', subject: 'Hệ điều hành', teacher: 'TS. Nguyễn Văn X', totalStudents: 45, assignedExam: 'EX-IT007-2025-01', gradedCount: 32, pendingCount: 13 },
+          { id: 'CLASS-002', name: 'IT005.N12', subject: 'Nhập môn mạng máy tính', teacher: 'TS. Nguyễn Văn X', totalStudents: 50, assignedExam: 'EX-IT005-2025-02', gradedCount: 48, pendingCount: 2 },
+          { id: 'CLASS-003', name: 'SS006.N13', subject: 'Pháp luật đại cương', teacher: 'TS. Trần Thị Y', totalStudents: 40, assignedExam: 'EX-SS006-2025-01', gradedCount: 15, pendingCount: 25 },
+          { id: 'CLASS-004', name: 'IT001.N14', subject: 'Lập trình hướng đối tượng', teacher: 'TS. Nguyễn Văn X', totalStudents: 38, assignedExam: null, gradedCount: 0, pendingCount: 0 }
+        ];
+
+        let stored = localStorage.getItem('mockClasses');
+        let classesList = stored ? JSON.parse(stored) : defaultClasses;
+
+        const matchedSubject = subjects.find(s => s.id === formData.subjectId);
+        const subjectName = matchedSubject ? matchedSubject.name.split(' - ')[1] : 'Chưa xác định';
+
+        classesList.push({
+          id: formData.classId,
+          name: formData.name,
+          subject: subjectName,
+          teacher: 'TS. Nguyễn Văn X',
+          totalStudents: 0,
+          assignedExam: null,
+          gradedCount: 0,
+          pendingCount: 0
+        });
+
+        localStorage.setItem('mockClasses', JSON.stringify(classesList));
+        
+        alert('Lớp học đã được tạo thành công (Chế độ giả lập)!');
+        navigate('/quan-ly-lop');
+      });
   };
 
   return (
@@ -45,18 +133,24 @@ const ThemLop = () => {
 
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-4">
-            <Form.Label className="fw-bold small">Mã lớp <span className="text-danger">*</span></Form.Label>
+            <Form.Label className="fw-bold small">ID lớp học (Database) <span className="text-danger">*</span></Form.Label>
+            <Form.Control type="text" placeholder="VD: CLASS-005" value={formData.classId} onChange={(e) => handleInputChange('classId', e.target.value)} isInvalid={!!errors.classId} />
+            <Form.Control.Feedback type="invalid">{errors.classId}</Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Label className="fw-bold small">Mã lớp (Tên lớp học) <span className="text-danger">*</span></Form.Label>
             <Form.Control type="text" placeholder="VD: IT007.N11" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} isInvalid={!!errors.name} />
             <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-4">
             <Form.Label className="fw-bold small">Môn học <span className="text-danger">*</span></Form.Label>
-            <Form.Select value={formData.subject} onChange={(e) => handleInputChange('subject', e.target.value)} isInvalid={!!errors.subject}>
+            <Form.Select value={formData.subjectId} onChange={(e) => handleInputChange('subjectId', e.target.value)} isInvalid={!!errors.subjectId}>
               <option value="">Chọn môn học</option>
-              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+              {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </Form.Select>
-            <Form.Control.Feedback type="invalid">{errors.subject}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{errors.subjectId}</Form.Control.Feedback>
           </Form.Group>
 
           <Row className="mb-5">

@@ -1,0 +1,18 @@
+package com.se104.backend.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class TeacherProfileResponse {
+    private String teacherId;
+    private String fullName;
+    private String email;
+    private String academicRank;
+    private String department;
+}

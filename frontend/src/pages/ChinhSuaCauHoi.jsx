@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
+import { fetchWithTimeout } from '../utils/api';
 
 const ChinhSuaCauHoi = () => {
   const { id } = useParams();
@@ -17,16 +18,48 @@ const ChinhSuaCauHoi = () => {
   });
 
   useEffect(() => {
-    // Mock load data
-    setTimeout(() => {
-      setFormData({
-        monHoc: 'Hệ điều hành',
-        doKho: 'Trung bình',
-        noiDung: 'Giải thích khái niệm về process và thread trong hệ điều hành.',
-        outline: '1. Khái niệm process (5đ)\n2. Khái niệm thread (5đ)',
+    fetchWithTimeout(`/api/question/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success && resData.data) {
+          const q = resData.data;
+          setFormData({
+            monHoc: q.subjectName || 'Chưa xác định',
+            doKho: q.difficulty || 'Trung bình',
+            noiDung: q.content || '',
+            outline: q.answer || '',
+          });
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.warn('Backend question fetch failed, fallback to mock detail:', err.message);
+        const stored = localStorage.getItem('mockQuestions');
+        if (stored) {
+          const list = JSON.parse(stored);
+          const found = list.find(q => q.dbId === parseInt(id) || q.id === id);
+          if (found) {
+            setFormData({
+              monHoc: found.subject,
+              doKho: found.difficulty,
+              noiDung: found.content || 'Giải thích khái niệm về process và thread trong hệ điều hành.',
+              outline: found.outline || '1. Khái niệm process (5đ)\n2. Khái niệm thread (5đ)',
+            });
+            setLoading(false);
+            return;
+          }
+        }
+        setFormData({
+          monHoc: 'Hệ điều hành',
+          doKho: 'Trung bình',
+          noiDung: 'Giải thích khái niệm về process và thread trong hệ điều hành.',
+          outline: '1. Khái niệm process (5đ)\n2. Khái niệm thread (5đ)',
+        });
+        setLoading(false);
       });
-      setLoading(false);
-    }, 500);
   }, [id]);
 
   const handleInputChange = (field, value) => {
@@ -35,8 +68,53 @@ const ChinhSuaCauHoi = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('Câu hỏi đã được cập nhật thành công!');
-    navigate('/ngan-hang-cau-hoi');
+    if (!formData.noiDung.trim() || !formData.outline.trim()) {
+      alert('Vui lòng nhập đầy đủ thông tin');
+      return;
+    }
+    
+    fetchWithTimeout(`/api/question/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: formData.noiDung,
+        answer: formData.outline,
+        difficulty: formData.doKho
+      })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Update failed');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success) {
+          alert('Câu hỏi đã được cập nhật thành công!');
+          navigate('/ngan-hang-cau-hoi');
+        } else {
+          alert('Không thể cập nhật câu hỏi: ' + resData.message);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend question update failed, fallback to mock successful update:', err.message);
+        const stored = localStorage.getItem('mockQuestions');
+        if (stored) {
+          const list = JSON.parse(stored);
+          const updated = list.map(q => {
+            if (q.dbId === parseInt(id) || q.id === id) {
+              return {
+                ...q,
+                difficulty: formData.doKho,
+                content: formData.noiDung,
+                outline: formData.outline
+              };
+            }
+            return q;
+          });
+          localStorage.setItem('mockQuestions', JSON.stringify(updated));
+        }
+        alert('Câu hỏi đã được cập nhật thành công (Chế độ giả lập)!');
+        navigate('/ngan-hang-cau-hoi');
+      });
   };
 
   if (loading) return <Container className="py-5 text-center"><p>Đang tải...</p></Container>;

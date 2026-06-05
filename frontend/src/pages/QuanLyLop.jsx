@@ -1,50 +1,89 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Table, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Table, Button, Spinner } from 'react-bootstrap';
+import { fetchWithTimeout } from '../utils/api';
 
 const QuanLyLop = () => {
-  const classes = [
-    {
-      id: 'CLASS-001',
-      name: 'IT007.N11',
-      subject: 'Hệ điều hành',
-      teacher: 'TS. Nguyễn Văn X',
-      totalStudents: 45,
-      assignedExam: 'EX-IT007-2025-01',
-      gradedCount: 32,
-      pendingCount: 13,
-    },
-    {
-      id: 'CLASS-002',
-      name: 'IT005.N12',
-      subject: 'Nhập môn mạng máy tính',
-      teacher: 'TS. Nguyễn Văn X',
-      totalStudents: 50,
-      assignedExam: 'EX-IT005-2025-02',
-      gradedCount: 48,
-      pendingCount: 2,
-    },
-    {
-      id: 'CLASS-003',
-      name: 'SS006.N13',
-      subject: 'Pháp luật đại cương',
-      teacher: 'TS. Trần Thị Y',
-      totalStudents: 40,
-      assignedExam: 'EX-SS006-2025-01',
-      gradedCount: 15,
-      pendingCount: 25,
-    },
-    {
-      id: 'CLASS-004',
-      name: 'IT001.N14',
-      subject: 'Lập trình hướng đối tượng',
-      teacher: 'TS. Nguyễn Văn X',
-      totalStudents: 38,
-      assignedExam: null,
-      gradedCount: 0,
-      pendingCount: 0,
-    },
-  ];
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWithTimeout('/api/classes')
+      .then(res => {
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success && resData.data) {
+          const mapped = resData.data.map(cls => ({
+            id: cls.classId,
+            name: cls.name,
+            subject: cls.subjectName || 'Chưa xác định',
+            totalStudents: cls.totalStudent || 0,
+            assignedExam: cls.examCode,
+            gradedCount: 0,
+            pendingCount: 0,
+          }));
+          setClasses(mapped);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.warn('Backend API is not available, using mock data:', err.message);
+        // Fallback to static mock data in case backend is not running
+        const defaultClasses = [
+          {
+            id: 'CLASS-001',
+            name: 'IT007.N11',
+            subject: 'Hệ điều hành',
+            teacher: 'TS. Nguyễn Văn X',
+            totalStudents: 45,
+            assignedExam: 'EX-IT007-2025-01',
+            gradedCount: 32,
+            pendingCount: 13,
+          },
+          {
+            id: 'CLASS-002',
+            name: 'IT005.N12',
+            subject: 'Nhập môn mạng máy tính',
+            teacher: 'TS. Nguyễn Văn X',
+            totalStudents: 50,
+            assignedExam: 'EX-IT005-2025-02',
+            gradedCount: 48,
+            pendingCount: 2,
+          },
+          {
+            id: 'CLASS-003',
+            name: 'SS006.N13',
+            subject: 'Pháp luật đại cương',
+            teacher: 'TS. Trần Thị Y',
+            totalStudents: 40,
+            assignedExam: 'EX-SS006-2025-01',
+            gradedCount: 15,
+            pendingCount: 25,
+          },
+          {
+            id: 'CLASS-004',
+            name: 'IT001.N14',
+            subject: 'Lập trình hướng đối tượng',
+            teacher: 'TS. Nguyễn Văn X',
+            totalStudents: 38,
+            assignedExam: null,
+            gradedCount: 0,
+            pendingCount: 0,
+          },
+        ];
+        
+        let stored = localStorage.getItem('mockClasses');
+        if (!stored) {
+          localStorage.setItem('mockClasses', JSON.stringify(defaultClasses));
+          setClasses(defaultClasses);
+        } else {
+          setClasses(JSON.parse(stored));
+        }
+        setLoading(false);
+      });
+  }, []);
 
   const totalClasses = classes.length;
   const totalStudents = classes.reduce((sum, c) => sum + c.totalStudents, 0);
@@ -107,7 +146,7 @@ const QuanLyLop = () => {
               <th className="px-4 py-3 border-0">Môn học</th>
               <th className="px-4 py-3 border-0 text-center">Sĩ số</th>
               <th className="px-4 py-3 border-0">Đề thi gán</th>
-              <th className="px-4 py-3 border-0 text-end">Thao tác</th>
+              <th className="px-4 py-3 border-0 text-end" style={{ minWidth: '220px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -125,7 +164,7 @@ const QuanLyLop = () => {
                     <span className="text-secondary small italic opacity-75 fw-medium">Chưa gán đề</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-end">
+                <td className="px-4 py-3 text-end" style={{ whiteSpace: 'nowrap' }}>
                   <div className="d-flex gap-2 justify-content-end">
                     <Button as={Link} to={`/quan-ly-lop/chi-tiet/${cls.id}`} variant="light" size="sm" className="border fw-bold rounded-3 text-dark px-3 hover-shadow-sm">
                       Chi tiết

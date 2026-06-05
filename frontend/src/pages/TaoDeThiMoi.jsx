@@ -1,42 +1,111 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Modal, Table, Badge } from 'react-bootstrap';
+import { fetchWithTimeout } from '../utils/api';
 
 const TaoDeThiMoi = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    tenMonThi: '',
+    examCode: '',
+    subjectId: '',
     hocKy: '',
     namHoc: '',
-    thoiLuong: 30,
+    thoiLuong: 60,
   });
 
+  const [subjects, setSubjects] = useState([]);
+  const [allBankQuestions, setAllBankQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [showQuestionBank, setShowQuestionBank] = useState(false);
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [filterSubject, setFilterSubject] = useState('');
-
-  const allBankQuestions = [
-    { id: 'Q-IT007-001', subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Trung bình', topic: 'Process Management', usage: 3 },
-    { id: 'Q-IT007-002', subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Khó', topic: 'Memory Management', usage: 2 },
-    { id: 'Q-IT005-001', subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Dễ', topic: 'OSI Model', usage: 5 },
-    { id: 'Q-IT005-002', subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Trung bình', topic: 'TCP/IP', usage: 4 },
-    { id: 'Q-SS006-001', subject: 'Pháp luật', type: 'Tự luận', difficulty: 'Dễ', topic: 'Hiến pháp', usage: 6 },
-  ];
-
-  const subjects = Array.from(new Set(allBankQuestions.map(q => q.subject)));
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    fetchWithTimeout('/api/teacher/subjects')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && resData.data) {
+          const mapped = resData.data.map(sub => ({
+            id: sub.subjectId,
+            name: `${sub.subjectId} - ${sub.subjectName}`
+          }));
+          setSubjects(mapped.length > 0 ? mapped : [
+            { id: 'IT007', name: 'IT007 - Hệ điều hành' },
+            { id: 'IT005', name: 'IT005 - Mạng máy tính' },
+            { id: 'SS006', name: 'SS006 - Pháp luật' },
+            { id: 'IT001', name: 'IT001 - Lập trình hướng đối tượng' },
+          ]);
+        } else {
+          setSubjects([
+            { id: 'IT007', name: 'IT007 - Hệ điều hành' },
+            { id: 'IT005', name: 'IT005 - Mạng máy tính' },
+            { id: 'SS006', name: 'SS006 - Pháp luật' },
+            { id: 'IT001', name: 'IT001 - Lập trình hướng đối tượng' },
+          ]);
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to fetch subjects in TaoDeThiMoi, using fallback:', err.message);
+        setSubjects([
+          { id: 'IT007', name: 'IT007 - Hệ điều hành' },
+          { id: 'IT005', name: 'IT005 - Mạng máy tính' },
+          { id: 'SS006', name: 'SS006 - Pháp luật' },
+          { id: 'IT001', name: 'IT001 - Lập trình hướng đối tượng' },
+        ]);
+      });
+
+    // 2. Fetch questions
+    const fallbackQuestions = [
+      { id: 'Q-IT007-001', dbId: 1, subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Trung bình', topic: 'Process Management' },
+      { id: 'Q-IT007-002', dbId: 2, subject: 'Hệ điều hành', type: 'Tự luận', difficulty: 'Khó', topic: 'Memory Management' },
+      { id: 'Q-IT005-001', dbId: 3, subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Dễ', topic: 'OSI Model' },
+      { id: 'Q-IT005-002', dbId: 4, subject: 'Mạng máy tính', type: 'Tự luận', difficulty: 'Trung bình', topic: 'TCP/IP' },
+      { id: 'Q-SS006-001', dbId: 5, subject: 'Pháp luật', type: 'Tự luận', difficulty: 'Dễ', topic: 'Hiến pháp' },
+    ];
+
+    fetchWithTimeout('/api/question')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && resData.data) {
+          const mapped = resData.data.map(q => ({
+            id: `Q-${q.questionId}`,
+            dbId: q.questionId,
+            subject: q.subjectName || 'Chưa xác định',
+            difficulty: q.difficulty || 'Trung bình',
+            type: 'Tự luận',
+            topic: '-'
+          }));
+          setAllBankQuestions(mapped.length > 0 ? mapped : fallbackQuestions);
+        } else {
+          setAllBankQuestions(fallbackQuestions);
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to fetch questions in TaoDeThiMoi, using fallback:', err.message);
+        setAllBankQuestions(fallbackQuestions);
+      });
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
+    if (field === 'subjectId') {
+      setSelectedQuestions([]); // Clear selected questions if subject changes
+    }
     if (errors[field]) setErrors({ ...errors, [field]: '' });
   };
 
   const filteredBankQuestions = allBankQuestions.filter(q => {
+    const examSubject = subjects.find(s => s.id === formData.subjectId);
+    if (!examSubject) return false;
+
+    // Ràng buộc môn học: Chỉ hiển thị câu hỏi thuộc môn thi đang chọn
+    const matchesSubject = q.subject === examSubject.name.split(' - ')[1] || q.subject === examSubject.id;
+    if (!matchesSubject) return false;
+
     const matchesDifficulty = filterDifficulty === '' || q.difficulty === filterDifficulty;
-    const matchesSubject = filterSubject === '' || q.subject === filterSubject;
     const notSelected = !selectedQuestions.some(sq => sq.id === q.id);
-    return matchesDifficulty && matchesSubject && notSelected;
+    return matchesDifficulty && notSelected;
   });
 
   const addQuestion = (q) => {
@@ -52,12 +121,76 @@ const TaoDeThiMoi = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.examCode || !formData.subjectId || !formData.hocKy || !formData.namHoc) {
+      setErrors({
+        examCode: !formData.examCode ? 'Vui lòng nhập mã đề thi' : '',
+        subjectId: !formData.subjectId ? 'Vui lòng chọn môn thi' : '',
+        hocKy: !formData.hocKy ? 'Vui lòng chọn học kỳ' : '',
+        namHoc: !formData.namHoc ? 'Vui lòng nhập năm học' : ''
+      });
+      return;
+    }
+
     if (selectedQuestions.length === 0) {
       alert('Vui lòng chọn ít nhất 1 câu hỏi');
       return;
     }
-    alert('Đề thi đã được tạo thành công!');
-    navigate('/de-thi');
+
+    const cleanYear = parseInt(formData.namHoc.split('-')[0]) || 2025;
+    
+    // Gửi yêu cầu tạo đề thi
+    fetchWithTimeout('/api/exam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        examCode: formData.examCode,
+        semester: formData.hocKy,
+        year: cleanYear,
+        duration: formData.thoiLuong,
+        subjectId: formData.subjectId,
+        questionsId: selectedQuestions.map(q => q.dbId)
+      })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Create exam error');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success) {
+          alert('Đề thi đã được tạo thành công!');
+          navigate('/de-thi');
+        } else {
+          alert('Không thể tạo đề thi: ' + resData.message);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend Create Exam failed, fallback to mock successful creation:', err.message);
+
+        // Save new exam to mock localStorage database
+        const defaultExams = [
+          { id: 'EX-IT007-2025-01', subject: 'Hệ điều hành', semester: 'Fall 2025', duration: '90 phút' },
+          { id: 'EX-IT005-2025-02', subject: 'Nhập môn mạng máy tính', semester: 'Fall 2025', duration: '60 phút' },
+          { id: 'EX-SS006-2025-01', subject: 'Pháp luật đại cương', semester: 'Spring 2026', duration: '60 phút' },
+        ];
+
+        let stored = localStorage.getItem('mockExams');
+        let examsList = stored ? JSON.parse(stored) : defaultExams;
+
+        const matchedSubject = subjects.find(s => s.id === formData.subjectId);
+        const subjectName = matchedSubject ? matchedSubject.name.split(' - ')[1] : 'Chưa xác định';
+
+        examsList.push({
+          id: formData.examCode,
+          subject: subjectName,
+          semester: `${formData.hocKy} ${formData.namHoc.split('-')[0]}`,
+          duration: `${formData.thoiLuong} phút`
+        });
+
+        localStorage.setItem('mockExams', JSON.stringify(examsList));
+
+        alert('Đề thi đã được tạo thành công (Chế độ giả lập)!');
+        navigate('/de-thi');
+      });
   };
 
   return (
@@ -78,26 +211,39 @@ const TaoDeThiMoi = () => {
 
         <Form onSubmit={handleSubmit}>
           <Row className="mb-4">
-            <Col md={4}>
+            <Col md={3}>
               <Form.Group>
-                <Form.Label className="fw-bold small">Tên môn thi <span className="text-danger">*</span></Form.Label>
-                <Form.Control type="text" placeholder="VD: Hệ điều hành" value={formData.tenMonThi} onChange={(e) => handleInputChange('tenMonThi', e.target.value)} />
+                <Form.Label className="fw-bold small">Mã đề thi <span className="text-danger">*</span></Form.Label>
+                <Form.Control type="text" placeholder="VD: EX-IT007-2025-01" value={formData.examCode} onChange={(e) => handleInputChange('examCode', e.target.value)} isInvalid={!!errors.examCode} />
+                <Form.Control.Feedback type="invalid">{errors.examCode}</Form.Control.Feedback>
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label className="fw-bold small">Tên môn thi <span className="text-danger">*</span></Form.Label>
+                <Form.Select value={formData.subjectId} onChange={(e) => handleInputChange('subjectId', e.target.value)} isInvalid={!!errors.subjectId}>
+                  <option value="">Chọn môn thi</option>
+                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </Form.Select>
+                <Form.Control.Feedback type="invalid">{errors.subjectId}</Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+            <Col md={3}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Học kỳ <span className="text-danger">*</span></Form.Label>
-                <Form.Select value={formData.hocKy} onChange={(e) => handleInputChange('hocKy', e.target.value)}>
+                <Form.Select value={formData.hocKy} onChange={(e) => handleInputChange('hocKy', e.target.value)} isInvalid={!!errors.hocKy}>
                   <option value="">Chọn học kỳ</option>
                   <option value="Fall 2025">Fall 2025</option>
                   <option value="Spring 2026">Spring 2026</option>
                 </Form.Select>
+                <Form.Control.Feedback type="invalid">{errors.hocKy}</Form.Control.Feedback>
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Năm học <span className="text-danger">*</span></Form.Label>
-                <Form.Control type="text" placeholder="VD: 2025-2026" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} />
+                <Form.Control type="text" placeholder="VD: 2025-2026" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} isInvalid={!!errors.namHoc} />
+                <Form.Control.Feedback type="invalid">{errors.namHoc}</Form.Control.Feedback>
               </Form.Group>
             </Col>
           </Row>
@@ -111,9 +257,12 @@ const TaoDeThiMoi = () => {
           <div className="mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="fw-bold mb-0">Câu hỏi (Tối đa 5 câu)</h5>
-              <Button variant="success" size="sm" onClick={() => setShowQuestionBank(true)} disabled={selectedQuestions.length >= 5}>
-                <i className="bi bi-plus-lg"></i> Thêm câu hỏi
-              </Button>
+              <div className="d-flex align-items-center gap-3">
+                {!formData.subjectId && <span className="text-danger small fw-medium">Vui lòng chọn môn thi trước</span>}
+                <Button variant="success" size="sm" onClick={() => setShowQuestionBank(true)} disabled={!formData.subjectId || selectedQuestions.length >= 5}>
+                  <i className="bi bi-plus-lg"></i> Thêm câu hỏi
+                </Button>
+              </div>
             </div>
 
             {selectedQuestions.length === 0 ? (
@@ -155,13 +304,7 @@ const TaoDeThiMoi = () => {
         </Modal.Header>
         <Modal.Body>
           <Row className="mb-3 g-2">
-            <Col md={6}>
-              <Form.Select size="sm" value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
-                <option value="">Tất cả môn học</option>
-                {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-              </Form.Select>
-            </Col>
-            <Col md={6}>
+            <Col md={12}>
               <Form.Select size="sm" value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}>
                 <option value="">Tất cả độ khó</option>
                 <option value="Dễ">Dễ</option>

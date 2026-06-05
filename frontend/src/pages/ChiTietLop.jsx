@@ -10,34 +10,104 @@ const ChiTietLop = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedExam, setSelectedExam] = useState('');
 
-  const availableExams = [
-    { id: 'EX-IT007-2025-01', name: 'Hệ điều hành - Giữa kỳ Fall 2025' },
-    { id: 'EX-IT005-2025-02', name: 'Nhập môn mạng máy tính - Cuối kỳ Fall 2025' },
-  ];
+  const [availableExams, setAvailableExams] = useState([]);
 
   useEffect(() => {
-    // Mock load
-    setTimeout(() => {
-      setClassDetail({
-        id: id,
-        name: 'IT007.N11',
-        subject: 'Hệ điều hành',
-        semester: 'Fall 2025',
-        year: '2025-2026',
-        assignedExam: 'EX-IT007-2025-01',
-        students: [
-          { id: 'SV001', name: 'Nguyễn Văn A', email: 'sv001@uit.edu.vn' },
-          { id: 'SV002', name: 'Trần Thị B', email: 'sv002@uit.edu.vn' },
-        ],
+    // 1. Fetch class student details
+    fetch(`/api/classes/${id}/students`)
+      .then(res => {
+        if (!res.ok) throw new Error('Class API error');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success && resData.data) {
+          const detail = resData.data;
+          setClassDetail({
+            id: detail.classId,
+            name: detail.name,
+            subject: detail.subjectName || 'Chưa xác định',
+            semester: detail.semester || 'Chưa xác định',
+            year: detail.year ? `${detail.year}-${detail.year + 1}` : 'Chưa xác định',
+            assignedExam: detail.examCode || null,
+            students: (detail.students || []).map(s => ({
+              id: s.studentId,
+              name: s.fullName,
+              email: s.email
+            }))
+          });
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.warn('Backend Class API is not available, using mock details:', err.message);
+        // Fallback to static mock details
+        setClassDetail({
+          id: id,
+          name: 'IT007.N11',
+          subject: 'Hệ điều hành',
+          semester: 'Fall 2025',
+          year: '2025-2026',
+          assignedExam: 'EX-IT007-2025-01',
+          students: [
+            { id: 'SV001', name: 'Nguyễn Văn A', email: 'sv001@uit.edu.vn' },
+            { id: 'SV002', name: 'Trần Thị B', email: 'sv002@uit.edu.vn' },
+          ],
+        });
+        setLoading(false);
       });
-      setLoading(false);
-    }, 500);
+
+    // 2. Fetch available exams from backend
+    fetch('/api/exam')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && resData.data) {
+          const mappedExams = resData.data.map(exam => ({
+            id: exam.examCode || `EX-${exam.examId}`,
+            dbId: exam.examId,
+            name: `${exam.subjectName} - ${exam.semester} ${exam.year}`
+          }));
+          setAvailableExams(mappedExams);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend Exam API failed in ChiTietLop, using mock exams:', err.message);
+        setAvailableExams([
+          { id: 'EX-IT007-2025-01', dbId: 1, name: 'Hệ điều hành - Giữa kỳ Fall 2025' },
+          { id: 'EX-IT005-2025-02', dbId: 2, name: 'Nhập môn mạng máy tính - Cuối kỳ Fall 2025' },
+        ]);
+      });
   }, [id]);
 
   const handleAssign = () => {
-    setClassDetail({ ...classDetail, assignedExam: selectedExam });
-    setShowAssignModal(false);
-    alert('Đã gán đề thi thành công!');
+    const selectedObj = availableExams.find(e => e.id === selectedExam);
+    if (!selectedObj) {
+      alert('Vui lòng chọn đề thi hợp lệ');
+      return;
+    }
+
+    // Call assign exam API: PUT /api/classes/{classId}/assign-exam/{examId}
+    fetch(`/api/classes/${id}/assign-exam/${selectedObj.dbId}`, {
+      method: 'PUT'
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Assign API error');
+        return res.json();
+      })
+      .then(resData => {
+        if (resData.success) {
+          setClassDetail({ ...classDetail, assignedExam: selectedExam });
+          setShowAssignModal(false);
+          alert('Đã gán đề thi thành công!');
+        } else {
+          alert('Gán đề thi thất bại: ' + resData.message);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend Assign API failed, fallback to frontend state update:', err.message);
+        setClassDetail({ ...classDetail, assignedExam: selectedExam });
+        setShowAssignModal(false);
+        alert('Đã gán đề thi thành công (Chế độ giả lập)!');
+      });
   };
 
   if (loading) return <Container className="py-5 text-center text-primary"><p className="fw-bold">Đang tải dữ liệu...</p></Container>;

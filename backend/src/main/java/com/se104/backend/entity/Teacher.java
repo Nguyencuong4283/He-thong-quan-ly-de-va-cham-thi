@@ -20,6 +20,15 @@ public class Teacher {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "academic_rank")
+    private String academicRank;
+
+    @Column(name = "department")
+    private String department;
+
     @Column(name = "password", nullable = false)
     private String password;
 

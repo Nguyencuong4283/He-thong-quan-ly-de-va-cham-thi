@@ -93,5 +93,10 @@ public class QuestionService {
                 .subjectName(updateQuestion.getSubject().getSubjectName())
                 .build();
     }
+    public void deleteQuestion(int questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+        questionRepository.delete(question);
+    }
 
 }

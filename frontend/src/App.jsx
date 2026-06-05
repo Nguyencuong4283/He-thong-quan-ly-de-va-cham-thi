@@ -4,7 +4,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import Layout from './layouts/Layout';
 import Home from './pages/Home';
 import DangNhap from './pages/DangNhap';
-import DangKy from './pages/DangKy';
 import DeThi from './pages/DeThi';
 import TaoDeThiMoi from './pages/TaoDeThiMoi';
 import ChinhSuaDeThi from './pages/ChinhSuaDeThi';
@@ -18,6 +17,8 @@ import ChinhSuaCauHoi from './pages/ChinhSuaCauHoi';
 import DanhSachHocSinhChamThi from './pages/DanhSachHocSinhChamThi';
 import ChamDiem from './pages/ChamDiem';
 import XemChiTietBaiThi from './pages/XemChiTietBaiThi';
+import CaiDat from './pages/CaiDat';
+import BaoCao from './pages/BaoCao';
 
 // Mock Protected Route - Đã vô hiệu hóa để bỏ qua đăng nhập
 const ProtectedRoute = ({ children }) => {
@@ -31,7 +32,6 @@ function App() {
       <Router>
         <Routes>
           <Route path="/dang-nhap" element={<DangNhap />} />
-          <Route path="/dang-ky" element={<DangKy />} />
           
           <Route path="/" element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
           
@@ -55,6 +55,10 @@ function App() {
           <Route path="/cham-thi/danh-sach/:id" element={<ProtectedRoute><Layout><DanhSachHocSinhChamThi /></Layout></ProtectedRoute>} />
           <Route path="/cham-thi/cham-diem/:id" element={<ProtectedRoute><Layout><ChamDiem /></Layout></ProtectedRoute>} />
           <Route path="/cham-thi/xem-chi-tiet/:id" element={<ProtectedRoute><Layout><XemChiTietBaiThi /></Layout></ProtectedRoute>} />
+          
+          {/* Báo cáo & Cài đặt */}
+          <Route path="/bao-cao" element={<ProtectedRoute><Layout><BaoCao /></Layout></ProtectedRoute>} />
+          <Route path="/cai-dat" element={<ProtectedRoute><Layout><CaiDat /></Layout></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

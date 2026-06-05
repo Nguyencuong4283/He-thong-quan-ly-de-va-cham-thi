@@ -136,6 +136,15 @@ public class ExamService {
                 .subjectName(exam.getSubject().getSubjectName())
                 .build();
     }
+    @Transactional
+    public void deleteExam(int examId) {
+        String teacherId = SecurityUtil.getCurrentTeacherId();
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
+        if (!exam.getTeacher().getTeacherId().equals(teacherId))
+            throw new BusinessException("Unauthorized access to exam");
+        examRepository.delete(exam);
+    }
     private List<ExamQuestion> buildExamQuestions(Exam exam, List<Question> questions) {
         return IntStream.range(0, questions.size())
                 .mapToObj(i -> ExamQuestion.builder()

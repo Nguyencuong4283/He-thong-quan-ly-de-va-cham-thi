@@ -108,7 +108,7 @@ public class ClazzService {
                 .year(clazz.getYear())
                 .teacherId(clazz.getTeacher().getTeacherId())
                 .examCode(clazz.getExam()!=null? clazz.getExam().getExamCode():null)
-                .totalStudent(clazz.getTotalStudent())
+                .totalStudent(clazz.getStudentClasses() != null ? clazz.getStudentClasses().size() : 0)
                 .build();
     }
 }
