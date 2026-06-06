@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom';
 import { Container, Table, Button, Card } from 'react-bootstrap';
 import examApi from '../api/examApi';
 import { mapExamList } from '../models/exam';
+import {Dropdown} from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 const DeThi = () => {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +30,9 @@ const DeThi = () => {
     };
     load();
   }, []);
+  const handlePrint = (examId, type) => {
+  navigate(`/print-exam/${examId}?type=${type}`);
+  };
 
   return (
     <Container fluid className="page-fade-in">
@@ -68,9 +74,16 @@ const DeThi = () => {
                   <td className="px-4 py-3 text-secondary fw-medium">{exam.duration ? `${exam.duration} phút` : '-'}</td>
                   <td className="px-4 py-3 text-end">
                     <div className="d-flex gap-2 justify-content-end">
-                      <Button variant="light" size="sm" className="border-0 rounded-3 text-primary p-2 shadow-xs" title="Xem chi tiết">
-                        <i className="bi bi-eye fs-5"></i>
-                      </Button>
+                      <Dropdown>
+                        <Dropdown.Toggle variant="outline-dark" className="d-flex align-items-center gap-2">
+                          <i className="bi bi-printer-fill"></i> In tài liệu
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                          <Dropdown.Item onClick={() => handlePrint(exam.examId, "exam")}>In đề thi</Dropdown.Item>
+                          <Dropdown.Item onClick={() => handlePrint(exam.examId, "answer")}>In hướng dẫn chấm</Dropdown.Item>
+                        </Dropdown.Menu>
+                      </Dropdown>
                       <Button as={Link} to={`/de-thi/chinh-sua/${exam.examId || exam.examCode}`} variant="light" size="sm" className="border-0 rounded-3 text-primary p-2 shadow-xs" title="Chỉnh sửa">
                         <i className="bi bi-pencil-square fs-5"></i>
                       </Button>

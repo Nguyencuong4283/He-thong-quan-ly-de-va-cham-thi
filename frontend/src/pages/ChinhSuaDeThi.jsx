@@ -177,35 +177,51 @@ const ChinhSuaDeThi = () => {
 
         <Form onSubmit={handleSubmit}>
           <Row className="mb-4">
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-bold small">Môn thi</Form.Label>
-                <Form.Select value={formData.maMonThi} onChange={(e) => handleInputChange('maMonThi', e.target.value)}>
-                  <option value="">Chọn môn thi</option>
-                  {subjectList.map((s) => (
-                    <option key={s.subjectId || s.id} value={s.subjectId || s.id}>
-                      {s.subjectName || s.name || s.label}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-bold small">Học kỳ</Form.Label>
-                <Form.Select value={formData.hocKy} onChange={(e) => handleInputChange('hocKy', e.target.value)}>
-                  <option value="Fall 2025">Fall 2025</option>
-                  <option value="Spring 2026">Spring 2026</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-            <Col md={4}>
-              <Form.Group>
-                <Form.Label className="fw-bold small">Năm học</Form.Label>
-                <Form.Control type="text" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} />
-              </Form.Group>
-            </Col>
-          </Row>
+  <Col md={4}>
+    <Form.Group>
+      <Form.Label className="fw-bold small">Môn thi</Form.Label>
+      <Form.Select 
+        value={formData.maMonThi} 
+        onChange={(e) => handleInputChange('maMonThi', e.target.value)}
+        disabled
+      >
+        <option value="">Chọn môn thi</option>
+        {subjectList.map((s) => (
+          <option key={s.subjectId || s.id} value={s.subjectId || s.id}>
+            {s.subjectName || s.name || s.label}
+          </option>
+        ))}
+      </Form.Select>
+    </Form.Group>
+  </Col>
+  <Col md={4}>
+    <Form.Group>
+      <Form.Label className="fw-bold small">Học kỳ</Form.Label>
+      <Form.Select 
+        value={formData.hocKy} 
+        onChange={(e) => handleInputChange('hocKy', e.target.value)}
+        disabled
+      >
+        <option value="">Chọn học kỳ</option>
+        <option value="Học kỳ 1">Học kỳ 1</option>
+        <option value="Học kỳ 2">Học kỳ 2</option>
+        <option value="Học kỳ hè">Học kỳ hè</option>
+      </Form.Select>
+    </Form.Group>
+  </Col>
+  <Col md={4}>
+    <Form.Group>
+      <Form.Label className="fw-bold small">Năm học</Form.Label>
+      <Form.Control 
+        type="text" 
+        value={formData.namHoc} 
+        onChange={(e) => handleInputChange('namHoc', e.target.value)} 
+        readOnly
+        disabled
+      />
+    </Form.Group>
+  </Col>
+</Row>
 
           <Form.Group className="mb-5">
             <Form.Label className="fw-bold small">Thời lượng: {formData.thoiLuong} phút</Form.Label>

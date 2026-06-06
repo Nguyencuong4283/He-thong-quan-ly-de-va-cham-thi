@@ -88,9 +88,19 @@ const ChiTietLop = () => {
             <h2 className="fw-bold mb-1" style={{ color: '#000000' }}>{classDetail.className}</h2>
             <p className="text-secondary mb-0 fw-bold">{classDetail.subjectName}</p>
           </div>
-          <Button as={Link} to={`/quan-ly-lop/nhap-hoc-sinh/${id}`} className="btn-success d-flex align-items-center gap-2 shadow-sm">
-            <i className="bi bi-person-plus-fill"></i> Nhập danh sách học sinh
-          </Button>
+          <Button
+              as={Link}
+              to={classDetail.examId ? `/quan-ly-lop/nhap-hoc-sinh/${id}` : "#"}
+              className={`btn-success d-flex align-items-center gap-2 shadow-sm ${!classDetail.examId ? "disabled opacity-50" : ""}`}
+              onClick={(e) => {
+                if (!classDetail.examId) {
+                  e.preventDefault();
+                  alert("Bạn phải gán đề thi trước khi thêm học sinh!");
+              }
+            }}
+          >
+  <i className="bi bi-person-plus-fill"></i> Nhập danh sách học sinh
+</Button>
         </div>
       </div>
 

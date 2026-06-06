@@ -18,6 +18,7 @@ import ChinhSuaCauHoi from './pages/ChinhSuaCauHoi';
 import DanhSachHocSinhChamThi from './pages/DanhSachHocSinhChamThi';
 import ChamDiem from './pages/ChamDiem';
 import XemChiTietBaiThi from './pages/XemChiTietBaiThi';
+import PrintExam from './pages/PrintExam';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -69,6 +70,8 @@ function App() {
           <Route path="/cham-thi/cham-diem/:id" element={<ProtectedRoute><Layout><ChamDiem /></Layout></ProtectedRoute>} />
           <Route path="/cham-thi/xem-chi-tiet/:id" element={<ProtectedRoute><Layout><XemChiTietBaiThi /></Layout></ProtectedRoute>} />
           
+          <Route path="/print-exam/:id" element={<PrintExam />} />
+
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>

@@ -11,10 +11,12 @@ import com.se104.backend.repository.ClazzRepository;
 import com.se104.backend.repository.ExamRepository;
 import com.se104.backend.repository.SubjectRepository;
 import com.se104.backend.repository.TeacherRepository;
+import com.se104.backend.repository.SubmissionRepository; // Import SubmissionRepository
 import com.se104.backend.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Import Transactional
 
 import java.util.List;
 
@@ -28,6 +30,9 @@ public class ClazzService {
     private SubjectRepository subjectRepository;
     @Autowired
     private ExamRepository examRepository;
+    @Autowired
+    private SubmissionRepository submissionRepository; // Inject SubmissionRepository
+
     public List<ClassListResponse> getAllClass()
     {
         String teacherId= SecurityUtil.getCurrentTeacherId();
@@ -80,13 +85,25 @@ public class ClazzService {
                 .build();
         return classToClassListResponse(classRepository.save(clazz));
     }
+
+    @Transactional // Ensure all operations are part of a single transaction
     public ClassUpdateResponse assignExam(String classId, int examId) {
-        Clazz clazz=classRepository.findById(classId)
-                .orElseThrow(()->new EntityNotFoundException("Class not found"));
-        Exam exam=examRepository.findById(examId)
-                .orElseThrow(()->new EntityNotFoundException("Exam not found"));
+        Clazz clazz = classRepository.findById(classId)
+                .orElseThrow(() -> new EntityNotFoundException("Class not found"));
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
+
+        // Update the exam for the Clazz
         clazz.setExam(exam);
         classRepository.save(clazz);
+
+        // Find all submissions for this class and update their exam
+        List<Submission> submissions = submissionRepository.findByClazz_ClassId(classId);
+        for (Submission submission : submissions) {
+            submission.setExam(exam);
+        }
+        submissionRepository.saveAll(submissions); // Save all updated submissions
+
         return ClassUpdateResponse.builder()
                 .classId(clazz.getClassId())
                 .examCode(clazz.getExam().getExamCode())

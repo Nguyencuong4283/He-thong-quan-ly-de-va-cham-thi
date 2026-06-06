@@ -1,0 +1,29 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: se104-mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: se104
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: .
+
+    container_name: se104-backend
+
+    depends_on:
+      - mysql
+
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:
