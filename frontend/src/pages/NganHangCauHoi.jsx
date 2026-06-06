@@ -17,7 +17,10 @@ const NganHangCauHoi = () => {
   const filteredQuestions = questions.filter(question => {
     const matchesDifficulty = filterDifficulty === '' || question.difficulty === filterDifficulty;
     const matchesSubject = filterSubject === '' || question.subject === filterSubject;
-    return matchesDifficulty && matchesSubject;
+    const matchesSearch = searchQuery === '' || 
+      question.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      question.subject.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesDifficulty && matchesSubject && matchesSearch;
   });
 
   useEffect(() => {
@@ -106,7 +109,19 @@ const NganHangCauHoi = () => {
           <p className="text-secondary small fw-medium">Sử dụng các tùy chọn bên dưới để lọc danh sách câu hỏi</p>
         </div>
         <Row className="g-3 align-items-center">
-          <Col md={4}>
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label className="small fw-bold text-secondary">Tìm kiếm</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Tìm kiếm câu hỏi..."
+                className="rounded-3"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+          <Col md={3}>
             <Form.Group>
               <Form.Label className="small fw-bold text-secondary">Môn học</Form.Label>
               <Form.Select className="rounded-3" value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
@@ -123,7 +138,7 @@ const NganHangCauHoi = () => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col md={4}>
+          <Col md={3}>
             <Form.Group>
               <Form.Label className="small fw-bold text-secondary">Độ khó</Form.Label>
               <Form.Select className="rounded-3" value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}>
@@ -134,11 +149,13 @@ const NganHangCauHoi = () => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col md={4} className="d-flex align-items-end">
-            { (filterSubject || filterDifficulty) && (
-              <Button variant="outline-secondary" className="rounded-3 border-0 fw-bold" onClick={() => { setFilterSubject(''); setFilterDifficulty(''); }}>
+          <Col md={3} className="mt-md-4 pt-md-2">
+            { (filterSubject || filterDifficulty || searchQuery) ? (
+              <Button variant="outline-secondary" className="rounded-3 border-0 fw-bold w-100" style={{ height: '38px' }} onClick={() => { setFilterSubject(''); setFilterDifficulty(''); setSearchQuery(''); }}>
                 <i className="bi bi-x-circle me-2"></i> Xóa bộ lọc
               </Button>
+            ) : (
+              <div style={{ height: '38px' }}></div>
             )}
           </Col>
         </Row>
@@ -155,7 +172,7 @@ const NganHangCauHoi = () => {
               <th className="px-4 py-3 text-muted small border-0">Mã Câu hỏi</th>
               <th className="px-4 py-3 text-muted small border-0">Môn học</th>
               <th className="px-4 py-3 text-muted small border-0">Độ khó</th>
-              <th className="px-4 py-3 text-muted small border-0 text-end">Thao tác</th>
+              <th className="px-4 py-3 text-muted small border-0 text-end" style={{ minWidth: '150px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -172,9 +189,12 @@ const NganHangCauHoi = () => {
                   <td className="px-4 py-3 fw-bold text-primary">{q.id}</td>
                   <td className="px-4 py-3 text-dark">{q.subject}</td>
                   <td className="px-4 py-3">{getDifficultyBadge(q.difficulty)}</td>
-                  <td className="px-4 py-3 text-end">
-                    <Button as={Link} to={`/ngan-hang-cau-hoi/chinh-sua/${q.id}`} variant="light" size="sm" className="border-0 rounded-3 text-primary p-2">
+                  <td className="px-4 py-3 text-end" style={{ whiteSpace: 'nowrap' }}>
+                    <Button as={Link} to={`/ngan-hang-cau-hoi/chinh-sua/${q.dbId}`} variant="light" size="sm" className="border-0 rounded-3 text-primary p-2">
                       <i className="bi bi-pencil-square fs-5"></i>
+                    </Button>
+                    <Button variant="light" size="sm" className="border-0 rounded-3 text-danger p-2 ms-2" onClick={() => handleDelete(q.dbId)}>
+                      <i className="bi bi-trash fs-5"></i>
                     </Button>
                   </td>
                 </tr>

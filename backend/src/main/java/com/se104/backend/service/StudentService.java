@@ -62,7 +62,7 @@ public class StudentService {
                     .email(student.getEmail())
                     .build());
         }
-        clazz.setTotalStudent(clazz.getTotalStudent() + dem);
+        clazz.setTotalStudent(clazz.getStudentClasses() != null ? clazz.getStudentClasses().size() : 0);
         clazzRepository.save(clazz);
         logger.info("Saved student class for student ID: {}", classId);
         return result;

@@ -57,4 +57,24 @@ public class ExamController {
                 .data(exam)
                 .build());
     }
+    @PutMapping("/{examId}")
+    public ResponseEntity<ApiResponse<ExamListResponse>> updateExam(
+            @PathVariable int examId,
+            @Valid @RequestBody ExamUpdateRequest examUpdateRequest
+    ) {
+        ExamListResponse exam = examService.updateExam(examId, examUpdateRequest);
+        return ResponseEntity.ok(ApiResponse.<ExamListResponse>builder()
+                .success(true)
+                .message("Update exam successfully")
+                .data(exam)
+                .build());
+    }
+    @DeleteMapping("/{examId}")
+    public ResponseEntity<ApiResponse<Void>> deleteExam(@PathVariable int examId) {
+        examService.deleteExam(examId);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .success(true)
+                .message("Delete exam successfully")
+                .build());
+    }
 }

@@ -45,9 +45,19 @@ const XemChiTietBaiThi = () => {
   return (
     <Container fluid>
       <div className="mb-4">
-        <Button variant="link" onClick={() => navigate(-1)} className="p-0 text-muted text-decoration-none mb-2">
-          <i className="bi bi-arrow-left"></i> Quay lại
-        </Button>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <Button variant="link" onClick={() => navigate(-1)} className="p-0 text-muted text-decoration-none">
+            <i className="bi bi-arrow-left"></i> Quay lại
+          </Button>
+          <Button 
+            variant="warning" 
+            onClick={() => navigate(`/cham-thi/cham-diem/${data.id}`)}
+            className="fw-bold d-flex align-items-center gap-2 shadow-sm text-dark px-3 py-1.5"
+            size="sm"
+          >
+            <i className="bi bi-pencil-square"></i> Sửa điểm bài thi
+          </Button>
+        </div>
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h2 className="fw-bold text-dark mb-1">CHI TIẾT ĐIỂM BÀI THI</h2>

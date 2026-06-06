@@ -86,7 +86,7 @@ const DanhSachHocSinhChamThi = () => {
               <th className="px-4 py-3 border-0 text-dark">Họ tên học sinh</th>
               <th className="px-4 py-3 border-0 text-center text-dark">Trạng thái</th>
               <th className="px-4 py-3 border-0 text-center text-dark">Điểm số</th>
-              <th className="px-4 py-3 border-0 text-end text-dark">Thao tác</th>
+              <th className="px-4 py-3 border-0 text-end text-dark" style={{ minWidth: '220px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>

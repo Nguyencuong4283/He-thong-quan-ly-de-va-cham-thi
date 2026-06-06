@@ -11,7 +11,7 @@ const ThemCauHoi = () => {
   const [loadingSubjects, setLoadingSubjects] = useState(false);
 
   const [formData, setFormData] = useState({
-    monHoc: '',
+    subjectId: '',
     doKho: '',
     noiDung: '',
     outline: '',
@@ -20,6 +20,26 @@ const ThemCauHoi = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    // Tải danh sách môn học từ backend với timeout 1 giây
+    fetchWithTimeout('/api/teacher/subjects')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && resData.data) {
+          setSubjects(resData.data);
+        }
+      })
+      .catch(err => {
+        console.warn('Backend subjects API failed in ThemCauHoi, using fallback:', err.message);
+        setSubjects([
+          { subjectId: 'IT007', subjectName: 'Hệ điều hành' },
+          { subjectId: 'IT005', subjectName: 'Mạng máy tính' },
+          { subjectId: 'SS006', subjectName: 'Pháp luật' },
+          { subjectId: 'IT001', subjectName: 'Lập trình hướng đối tượng' },
+        ]);
+      });
+  }, []);
+
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
@@ -27,7 +47,7 @@ const ThemCauHoi = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.monHoc) newErrors.monHoc = 'Vui lòng chọn môn học';
+    if (!formData.subjectId) newErrors.subjectId = 'Vui lòng chọn môn học';
     if (!formData.doKho) newErrors.doKho = 'Vui lòng chọn độ khó';
     if (!formData.noiDung.trim()) newErrors.noiDung = 'Vui lòng nhập nội dung câu hỏi';
     if (!formData.outline.trim()) newErrors.outline = 'Vui lòng nhập outline chấm điểm';
@@ -99,7 +119,7 @@ const ThemCauHoi = () => {
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-4">
             <Form.Label className="fw-bold small">Môn học <span className="text-danger">*</span></Form.Label>
-            <Form.Select value={formData.monHoc} onChange={(e) => handleInputChange('monHoc', e.target.value)} isInvalid={!!errors.monHoc}>
+            <Form.Select value={formData.subjectId} onChange={(e) => handleInputChange('subjectId', e.target.value)} isInvalid={!!errors.subjectId}>
               <option value="">Chọn môn học</option>
               {loadingSubjects ? (
                 <option value="">Đang tải môn học...</option>
@@ -107,7 +127,7 @@ const ThemCauHoi = () => {
                 subjects.map(s => <option key={s.subjectId || s.id} value={s.subjectId || s.id}>{s.subjectName || s.name || s.label}</option>)
               )}
             </Form.Select>
-            <Form.Control.Feedback type="invalid">{errors.monHoc}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{errors.subjectId}</Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-4">

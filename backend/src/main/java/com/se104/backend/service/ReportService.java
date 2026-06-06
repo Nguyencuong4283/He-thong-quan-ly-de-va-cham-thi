@@ -53,7 +53,7 @@ public class ReportService {
                 .stream()
                 .map(entry -> {
                     int amountSubmitted=entry.getValue().size();
-                    int totalStudent=entry.getValue().get(0).getClazz().getTotalStudent();
+                    int totalStudent = entry.getValue().get(0).getClazz().getStudentClasses() != null ? entry.getValue().get(0).getClazz().getStudentClasses().size() : 0;
                     double submissionRate=totalStudent==0?0:(((double)amountSubmitted / totalStudent) * 100);
                     return ClassReportItem.builder()
                             .classId(entry.getKey())

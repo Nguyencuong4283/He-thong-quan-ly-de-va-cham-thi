@@ -21,6 +21,38 @@ const NhapDanhSachHocSinh = () => {
     setFormData({ mssv: '', name: '', email: '', phone: '' });
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.split('\n');
+      const parsedStudents = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const columns = line.split(',');
+        if (columns.length >= 2) {
+          const mssv = columns[0].trim();
+          const name = columns[1].trim();
+          const email = columns[2] ? columns[2].trim() : `${mssv.toLowerCase()}@uit.edu.vn`;
+          parsedStudents.push({ mssv, name, email });
+        }
+      }
+
+      if (parsedStudents.length > 0) {
+        setStudents([...students, ...parsedStudents]);
+        alert(`Đã đọc thành công ${parsedStudents.length} học sinh từ file! Bấm "Hoàn tất nhập" để lưu.`);
+      } else {
+        alert('File không hợp lệ hoặc rỗng. Định dạng CSV mẫu: mssv,name,email');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleRemove = (mssv) => setStudents(students.filter(s => s.mssv !== mssv));
 
   const handleSubmit = async () => {
@@ -119,9 +151,15 @@ const NhapDanhSachHocSinh = () => {
           </Form>
         ) : (
           <div className="text-center py-5 border rounded-3 border-dashed bg-light">
-            <i className="bi bi-cloud-upload fs-1 text-muted"></i>
-            <p className="mt-2 text-muted">Kéo thả hoặc chọn file Excel/CSV</p>
-            <Button variant="outline-success" size="sm">Tải file mẫu</Button>
+            <i className="bi bi-file-earmark-excel fs-1 text-success mb-3 d-block"></i>
+            <p className="mt-2 text-muted fw-bold">Chọn file danh sách học sinh (định dạng CSV)</p>
+            <Form.Group className="mb-3 mx-auto" style={{ maxWidth: '400px' }}>
+              <Form.Control type="file" accept=".csv" onChange={handleFileUpload} className="border-2 text-dark" />
+            </Form.Group>
+            <p className="text-muted small">Định dạng file CSV mẫu: <code className="bg-light p-1 rounded border text-danger">mssv,name,email</code></p>
+            <Button as="a" href="/student_template.csv" download="student_template.csv" variant="outline-success" size="sm">
+              Tải file mẫu CSV
+            </Button>
           </div>
         )}
       </Card>

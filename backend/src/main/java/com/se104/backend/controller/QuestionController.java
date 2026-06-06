@@ -63,5 +63,13 @@ public class QuestionController {
                 .data(question)
                 .build(), HttpStatus.OK);
     }
+    @DeleteMapping("/{questionId}")
+    public ResponseEntity<ApiResponse<Void>> deleteQuestion(@PathVariable int questionId) {
+        questionService.deleteQuestion(questionId);
+        return new ResponseEntity<>(ApiResponse.<Void>builder()
+                .success(true)
+                .message("Delete question successfully")
+                .build(), HttpStatus.OK);
+    }
 
 }

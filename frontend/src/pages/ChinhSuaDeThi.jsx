@@ -119,10 +119,8 @@ const ChinhSuaDeThi = () => {
     }
   };
 
-  const removeQuestion = (id) => {
-    if (questions.length > 1) {
-      setQuestions(questions.filter(q => q.id !== id));
-    }
+  const removeQuestion = (dbId) => {
+    setQuestions(questions.filter(q => q.dbId !== dbId).map((q, i) => ({ ...q, orderIndex: i + 1 })));
   };
 
   const handleSubmit = (e) => {
@@ -152,7 +150,9 @@ const ChinhSuaDeThi = () => {
     })();
   };
 
-  if (loading) return <Container className="py-5 text-center"><p>Đang tải...</p></Container>;
+  const subjectsList = Array.from(new Set(allBankQuestions.map(q => q.subject)));
+
+  if (loading) return <Container className="py-5 text-center"><Spinner animation="border" variant="primary" /><p className="mt-2 text-muted">Đang tải...</p></Container>;
 
   return (
     <Container fluid>
@@ -163,7 +163,7 @@ const ChinhSuaDeThi = () => {
         <div className="d-flex justify-content-between align-items-center">
           <div>
             <h2 className="fw-bold text-dark mb-1">CHỈNH SỬA ĐỀ THI</h2>
-            <p className="text-muted small">Mã đề thi: {id}</p>
+            <p className="text-muted small">Mã đề thi: {formData.examCode}</p>
           </div>
           <Badge bg="info" className="px-3 py-2">Bản nháp</Badge>
         </div>
@@ -177,7 +177,13 @@ const ChinhSuaDeThi = () => {
 
         <Form onSubmit={handleSubmit}>
           <Row className="mb-4">
-            <Col md={4}>
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label className="fw-bold small text-secondary">Mã đề thi</Form.Label>
+                <Form.Control type="text" value={formData.examCode} disabled />
+              </Form.Group>
+            </Col>
+            <Col md={3}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Môn thi</Form.Label>
                 <Form.Select value={formData.maMonThi} onChange={(e) => handleInputChange('maMonThi', e.target.value)}>
@@ -190,19 +196,16 @@ const ChinhSuaDeThi = () => {
                 </Form.Select>
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Group>
-                <Form.Label className="fw-bold small">Học kỳ</Form.Label>
-                <Form.Select value={formData.hocKy} onChange={(e) => handleInputChange('hocKy', e.target.value)}>
-                  <option value="Fall 2025">Fall 2025</option>
-                  <option value="Spring 2026">Spring 2026</option>
-                </Form.Select>
+                <Form.Label className="fw-bold small text-secondary">Học kỳ</Form.Label>
+                <Form.Control type="text" value={formData.hocKy} disabled />
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Group>
-                <Form.Label className="fw-bold small">Năm học</Form.Label>
-                <Form.Control type="text" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} />
+                <Form.Label className="fw-bold small text-secondary">Năm học</Form.Label>
+                <Form.Control type="text" value={formData.namHoc} disabled />
               </Form.Group>
             </Col>
           </Row>
@@ -210,6 +213,7 @@ const ChinhSuaDeThi = () => {
           <Form.Group className="mb-5">
             <Form.Label className="fw-bold small">Thời lượng: {formData.thoiLuong} phút</Form.Label>
             <Form.Range min="30" max="180" step="10" value={formData.thoiLuong} onChange={(e) => handleInputChange('thoiLuong', parseInt(e.target.value))} />
+            <Form.Text className="text-muted small">QĐ2: Từ 30 đến 180 phút</Form.Text>
           </Form.Group>
 
           <div className="mb-4">
@@ -223,16 +227,28 @@ const ChinhSuaDeThi = () => {
               </Button>
             </div>
 
-            <div className="space-y-4">
-              {questions.map((q, index) => (
-                <div key={q.id} className="p-3 border rounded-3 mb-3 bg-white shadow-xs">
-                  <div className="d-flex justify-content-between mb-2">
-                    <span className="fw-bold small">Câu {index + 1}:</span>
-                    {questions.length > 1 && (
-                      <Button variant="link" className="text-danger p-0" onClick={() => removeQuestion(q.id)}>
-                        <i className="bi bi-trash"></i>
-                      </Button>
-                    )}
+            {questions.length === 0 ? (
+              <div className="text-center py-5 border rounded-3 bg-light text-muted">
+                <i className="bi bi-file-earmark-plus fs-1"></i>
+                <p className="mt-2">Chưa có câu hỏi nào được chọn</p>
+              </div>
+            ) : (
+              <div className="list-group list-group-flush border rounded-3">
+                {questions.map((q) => (
+                  <div key={q.dbId} className="list-group-item d-flex justify-content-between align-items-center p-3">
+                    <div className="flex-grow-1 me-3">
+                      <div className="d-flex align-items-center gap-2 mb-2">
+                        <span className="fw-bold">Câu {q.orderIndex}:</span>
+                        <span className="text-primary small fw-semibold">{q.id}</span>
+                        <Badge bg={q.difficulty === 'Dễ' ? 'success' : q.difficulty === 'Khó' ? 'danger' : 'warning'} className="rounded-pill px-2">
+                          {q.difficulty}
+                        </Badge>
+                      </div>
+                      <p className="mb-0 text-dark fw-medium" style={{ whiteSpace: 'pre-wrap' }}>{q.content}</p>
+                    </div>
+                    <Button variant="link" className="text-danger p-0" onClick={() => removeQuestion(q.dbId)}>
+                      <i className="bi bi-trash fs-5"></i>
+                    </Button>
                   </div>
                   <Form.Control as="textarea" rows={3} value={q.content} readOnly />
                   <Form.Text className="text-muted small">Nội dung câu hỏi chỉ để tham khảo, không thể chỉnh sửa tại đây.</Form.Text>

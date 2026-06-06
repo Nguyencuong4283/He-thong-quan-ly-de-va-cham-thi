@@ -87,7 +87,7 @@ const QuanLyLop = () => {
               <th className="px-4 py-3 border-0">Môn học</th>
               <th className="px-4 py-3 border-0 text-center">Sĩ số</th>
               <th className="px-4 py-3 border-0">Đề thi gán</th>
-              <th className="px-4 py-3 border-0 text-end">Thao tác</th>
+              <th className="px-4 py-3 border-0 text-end" style={{ minWidth: '220px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -105,7 +105,7 @@ const QuanLyLop = () => {
                     <span className="text-secondary small italic opacity-75 fw-medium">Chưa gán đề</span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-end">
+                <td className="px-4 py-3 text-end" style={{ whiteSpace: 'nowrap' }}>
                   <div className="d-flex gap-2 justify-content-end">
                     <Button as={Link} to={`/quan-ly-lop/chi-tiet/${cls.classId || cls.id}`} variant="light" size="sm" className="border fw-bold rounded-3 text-dark px-3 hover-shadow-sm">
                       Chi tiết

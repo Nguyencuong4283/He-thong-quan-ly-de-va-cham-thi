@@ -12,9 +12,11 @@ const TaoDeThiMoi = () => {
     maMonThi: '',
     hocKy: '',
     namHoc: '',
-    thoiLuong: 30,
+    thoiLuong: 60,
   });
 
+  const [subjects, setSubjects] = useState([]);
+  const [allBankQuestions, setAllBankQuestions] = useState([]);
   const [selectedQuestions, setSelectedQuestions] = useState([]);
   const [showQuestionBank, setShowQuestionBank] = useState(false);
   const [filterDifficulty, setFilterDifficulty] = useState('');
@@ -69,6 +71,9 @@ const TaoDeThiMoi = () => {
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
+    if (field === 'subjectId') {
+      setSelectedQuestions([]); // Clear selected questions if subject changes
+    }
     if (errors[field]) setErrors({ ...errors, [field]: '' });
   };
 
@@ -156,7 +161,14 @@ const TaoDeThiMoi = () => {
 
         <Form onSubmit={handleSubmit}>
           <Row className="mb-4">
-            <Col md={4}>
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label className="fw-bold small">Mã đề thi <span className="text-danger">*</span></Form.Label>
+                <Form.Control type="text" placeholder="VD: EX-IT007-2025-01" value={formData.examCode} onChange={(e) => handleInputChange('examCode', e.target.value)} isInvalid={!!errors.examCode} />
+                <Form.Control.Feedback type="invalid">{errors.examCode}</Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+            <Col md={3}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Tên môn thi <span className="text-danger">*</span></Form.Label>
                 <Form.Select value={formData.maMonThi} onChange={(e) => handleInputChange('maMonThi', e.target.value)}>
@@ -169,21 +181,23 @@ const TaoDeThiMoi = () => {
                 </Form.Select>
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Học kỳ <span className="text-danger">*</span></Form.Label>
-                <Form.Select value={formData.hocKy} onChange={(e) => handleInputChange('hocKy', e.target.value)}>
+                <Form.Select value={formData.hocKy} onChange={(e) => handleInputChange('hocKy', e.target.value)} isInvalid={!!errors.hocKy}>
                   <option value="">Chọn học kỳ</option>
                   <option value="Học kỳ 1">Học kỳ 1</option>
                   <option value="Học kỳ 2">Học kỳ 2</option>
                   <option value="Học kỳ hè">Học kỳ hè</option>
                 </Form.Select>
+                <Form.Control.Feedback type="invalid">{errors.hocKy}</Form.Control.Feedback>
               </Form.Group>
             </Col>
-            <Col md={4}>
+            <Col md={3}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Năm học <span className="text-danger">*</span></Form.Label>
-                <Form.Control type="text" placeholder="VD: 2025-2026" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} />
+                <Form.Control type="text" placeholder="VD: 2025-2026" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} isInvalid={!!errors.namHoc} />
+                <Form.Control.Feedback type="invalid">{errors.namHoc}</Form.Control.Feedback>
               </Form.Group>
             </Col>
           </Row>
@@ -197,9 +211,12 @@ const TaoDeThiMoi = () => {
           <div className="mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="fw-bold mb-0">Câu hỏi (Tối đa 5 câu)</h5>
-              <Button variant="success" size="sm" onClick={() => setShowQuestionBank(true)} disabled={selectedQuestions.length >= 5}>
-                <i className="bi bi-plus-lg"></i> Thêm câu hỏi
-              </Button>
+              <div className="d-flex align-items-center gap-3">
+                {!formData.subjectId && <span className="text-danger small fw-medium">Vui lòng chọn môn thi trước</span>}
+                <Button variant="success" size="sm" onClick={() => setShowQuestionBank(true)} disabled={!formData.subjectId || selectedQuestions.length >= 5}>
+                  <i className="bi bi-plus-lg"></i> Thêm câu hỏi
+                </Button>
+              </div>
             </div>
 
             {selectedQuestions.length === 0 ? (

@@ -49,6 +49,33 @@ body {
 [data-bs-theme='dark'] .stat-badge-primary { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
 [data-bs-theme='dark'] .stat-badge-success { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
 
+/* ÉP BADGE HIỂN THỊ CHỮ RÕ RÀNG TRÊN NỀN MỜ (SOFT BADGES) */
+.badge.bg-success {
+  background-color: rgba(25, 135, 84, 0.15) !important;
+  color: #198754 !important;
+}
+.badge.bg-info {
+  background-color: rgba(13, 202, 240, 0.15) !important;
+  color: #0d6efd !important;
+}
+.badge.bg-warning {
+  background-color: rgba(255, 193, 7, 0.20) !important;
+  color: #b58900 !important;
+}
+
+[data-bs-theme='dark'] .badge.bg-success {
+  background-color: rgba(40, 167, 69, 0.2) !important;
+  color: #28a745 !important;
+}
+[data-bs-theme='dark'] .badge.bg-info {
+  background-color: rgba(23, 162, 184, 0.2) !important;
+  color: #17a2b8 !important;
+}
+[data-bs-theme='dark'] .badge.bg-warning {
+  background-color: rgba(255, 193, 7, 0.2) !important;
+  color: #ffc107 !important;
+}
+
 /* Ép Card background không đè lên các lớp bg-primary/bg-success */
 .card.bg-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; color: white !important; }
 .card.bg-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; color: white !important; }
@@ -63,4 +90,47 @@ body {
   align-items: center;
   gap: 10px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+/* Styling for printing exams */
+#printable-exam-area {
+  display: none;
+}
+
+@media print {
+  /* Hide everything else */
+  body * {
+    visibility: hidden;
+    background: transparent !important;
+  }
+  
+  /* Show printable area */
+  #printable-exam-area, #printable-exam-area * {
+    visibility: visible;
+  }
+  
+  #printable-exam-area {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    color: #000000 !important;
+    background-color: #ffffff !important;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 20px;
+  }
+
+  /* Prevent question items from breaking awkwardly across pages */
+  .print-question-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 25px;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
 }

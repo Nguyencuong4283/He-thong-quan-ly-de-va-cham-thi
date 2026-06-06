@@ -11,14 +11,38 @@ const ThemLop = () => {
   const [loadingSubjects, setLoadingSubjects] = useState(false);
 
   const [formData, setFormData] = useState({
+    classId: '',
     name: '',
-    subject: '',
+    subjectId: '',
     semester: '',
     year: '',
   });
 
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    // Tải danh sách môn học từ backend với timeout
+    fetchWithTimeout('/api/teacher/subjects')
+      .then(res => res.json())
+      .then(resData => {
+        if (resData.success && resData.data) {
+          setSubjects(resData.data.map(sub => ({
+            id: sub.subjectId,
+            name: `${sub.subjectId} - ${sub.subjectName}`
+          })));
+        }
+      })
+      .catch(err => {
+        console.warn('Backend subjects API failed in ThemLop, using fallback:', err.message);
+        setSubjects([
+          { id: 'IT007', name: 'IT007 - Hệ điều hành' },
+          { id: 'IT005', name: 'IT005 - Mạng máy tính' },
+          { id: 'SS006', name: 'SS006 - Pháp luật' },
+          { id: 'IT001', name: 'IT001 - Lập trình hướng đối tượng' },
+        ]);
+      });
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
@@ -42,8 +66,14 @@ const ThemLop = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.subject) {
-      setErrors({ name: !formData.name ? 'Vui lòng nhập mã lớp' : '', subject: !formData.subject ? 'Vui lòng chọn môn học' : '' });
+    if (!formData.classId || !formData.name || !formData.subjectId || !formData.semester || !formData.year) {
+      setErrors({
+        classId: !formData.classId ? 'Vui lòng nhập Mã lớp (VD: CLASS-005)' : '',
+        name: !formData.name ? 'Vui lòng nhập Tên lớp (VD: IT007.N11)' : '',
+        subjectId: !formData.subjectId ? 'Vui lòng chọn môn học' : '',
+        semester: !formData.semester ? 'Vui lòng chọn học kỳ' : '',
+        year: !formData.year ? 'Vui lòng nhập năm học' : ''
+      });
       return;
     }
     setIsSaving(true);
@@ -85,20 +115,26 @@ const ThemLop = () => {
 
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-4">
-            <Form.Label className="fw-bold small">Mã lớp <span className="text-danger">*</span></Form.Label>
+            <Form.Label className="fw-bold small">ID lớp học (Database) <span className="text-danger">*</span></Form.Label>
+            <Form.Control type="text" placeholder="VD: CLASS-005" value={formData.classId} onChange={(e) => handleInputChange('classId', e.target.value)} isInvalid={!!errors.classId} />
+            <Form.Control.Feedback type="invalid">{errors.classId}</Form.Control.Feedback>
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Label className="fw-bold small">Mã lớp (Tên lớp học) <span className="text-danger">*</span></Form.Label>
             <Form.Control type="text" placeholder="VD: IT007.N11" value={formData.name} onChange={(e) => handleInputChange('name', e.target.value)} isInvalid={!!errors.name} />
             <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-4">
             <Form.Label className="fw-bold small">Môn học <span className="text-danger">*</span></Form.Label>
-            <Form.Select value={formData.subject} onChange={(e) => handleInputChange('subject', e.target.value)} isInvalid={!!errors.subject}>
+            <Form.Select value={formData.subjectId} onChange={(e) => handleInputChange('subjectId', e.target.value)} isInvalid={!!errors.subjectId}>
               <option value="">Chọn môn học</option>
               {loadingSubjects ? <option>Đang tải...</option> : subjects.map(s => (
                 <option key={s.subjectId || s.id} value={s.subjectId || s.id}>{s.subjectName || s.name}</option>
               ))}
             </Form.Select>
-            <Form.Control.Feedback type="invalid">{errors.subject}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{errors.subjectId}</Form.Control.Feedback>
           </Form.Group>
 
           <Row className="mb-5">

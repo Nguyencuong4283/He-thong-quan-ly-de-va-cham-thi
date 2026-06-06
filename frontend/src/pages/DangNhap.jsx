@@ -102,7 +102,7 @@ const DangNhap = () => {
                   <p className="text-muted small">Chào mừng quay trở lại với EduManage</p>
                 </div>
 
-                <Form onSubmit={handleSubmit}>
+                <Form noValidate onSubmit={handleSubmit}>
                   <Form.Group className="mb-3">
                     <Form.Label className="fw-semibold small">Email / Mã giáo viên</Form.Label>
                     <InputGroup hasValidation>
@@ -171,15 +171,6 @@ const DangNhap = () => {
                     Đăng nhập
                   </Button>
                 </Form>
-
-                <div className="mt-4 text-center">
-                  <p className="small text-muted">
-                    Chưa có tài khoản?{' '}
-                    <Link to="/dang-ky" className="text-primary fw-bold text-decoration-none">
-                      Đăng ký ngay
-                    </Link>
-                  </p>
-                </div>
               </Card.Body>
             </Card>
             <div className="text-center mt-4">

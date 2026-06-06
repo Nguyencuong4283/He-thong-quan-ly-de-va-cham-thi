@@ -1,16 +1,14 @@
 package com.se104.backend.config;
 
-import com.se104.backend.entity.Subject;
-import com.se104.backend.entity.Teacher;
-import com.se104.backend.entity.TeacherSubject;
-import com.se104.backend.entity.TeacherSubjectId;
-import com.se104.backend.repository.SubjectRepository;
-import com.se104.backend.repository.TeacherRepository;
-import com.se104.backend.repository.TeacherSubjectRepository;
+import com.se104.backend.entity.*;
+import com.se104.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +17,13 @@ public class DataSeeder implements CommandLineRunner {
     private final TeacherRepository teacherRepository;
     private final SubjectRepository subjectRepository;
     private final TeacherSubjectRepository teacherSubjectRepository;
+    private final ClazzRepository clazzRepository;
+    private final QuestionRepository questionRepository;
+    private final ExamRepository examRepository;
+    private final StudentRepository studentRepository;
+    private final StudentClassRepository studentClassRepository;
+    private final SubmissionRepository submissionRepository;
+    private final ExamQuestionRepository examQuestionRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
