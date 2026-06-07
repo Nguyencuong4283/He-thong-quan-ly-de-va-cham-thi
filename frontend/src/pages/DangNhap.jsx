@@ -167,9 +167,11 @@ const DangNhap = () => {
                     <a href="#" className="small text-primary text-decoration-none fw-semibold">Quên mật khẩu?</a>
                   </div>
 
-                  <Button variant="primary" type="submit" className="w-full py-2 fw-bold shadow-sm">
+                 <div className="d-flex justify-content-center">
+                  <Button variant="primary" type="submit" className="py-2 fw-bold shadow-sm">
                     Đăng nhập
                   </Button>
+                </div>
                 </Form>
 
                 <div className="mt-4 text-center">

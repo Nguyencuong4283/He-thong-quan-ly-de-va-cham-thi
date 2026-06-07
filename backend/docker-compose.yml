@@ -12,18 +12,15 @@ services:
       - "3307:3306"
 
     volumes:
-      - mysql_data:/var/lib/mysql
+      - backend_mysql_data:/var/lib/mysql
 
   backend:
     build: .
-
     container_name: se104-backend
-
     depends_on:
       - mysql
-
     ports:
       - "8080:8080"
 
 volumes:
-  mysql_data:
+  backend_mysql_data:

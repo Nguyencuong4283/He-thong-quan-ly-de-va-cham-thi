@@ -183,7 +183,7 @@ const TaoDeThiMoi = () => {
             <Col md={4}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Năm học <span className="text-danger">*</span></Form.Label>
-                <Form.Control type="text" placeholder="VD: 2025-2026" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} />
+                <Form.Control type="text" placeholder="VD: 2025" value={formData.namHoc} onChange={(e) => handleInputChange('namHoc', e.target.value)} />
               </Form.Group>
             </Col>
           </Row>

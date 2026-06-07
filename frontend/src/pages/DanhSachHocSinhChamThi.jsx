@@ -41,6 +41,37 @@ const DanhSachHocSinhChamThi = () => {
     return (s.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || String(s.studentId).includes(searchTerm)) &&
            (filterStatus === '' || String(s.status) === filterStatus); // So sánh chuỗi từ Select với Boolean
   });
+  const handleExportScore = () => {
+    const rows = [
+      ['MSSV', 'Họ tên', 'Điểm', 'Trạng thái']
+    ];
+
+    submissions.forEach((s) => {
+      rows.push([
+        s.studentId,
+        s.fullName,
+        s.score !== -1 ? s.score : '',
+        s.status ? 'Đã chấm' : 'Chưa chấm'
+      ]);
+    });
+    const csvContent =
+      '\uFEFF' +
+      rows.map((row) => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8;',
+    });
+
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.href = url;
+    link.download = `BangDiem_${classDetail?.name || id}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <Container fluid className="page-fade-in">
@@ -77,6 +108,10 @@ const DanhSachHocSinhChamThi = () => {
            <div className="d-flex gap-2">
              <Badge bg="success" className="rounded-pill px-3 fw-bold">Đã chấm: {submissions.filter(s => s.status === true).length}</Badge>
              <Badge bg="warning" text="dark" className="rounded-pill px-3 fw-bold">Chưa chấm: {submissions.filter(s => s.status === false).length}</Badge>
+              <Button variant="success" className="fw-bold" onClick={handleExportScore}>
+                <i className="bi bi-file-earmark-excel me-2"></i>
+                Xuất bảng điểm
+              </Button>
            </div>
         </div>
         <Table responsive hover className="mb-0">
