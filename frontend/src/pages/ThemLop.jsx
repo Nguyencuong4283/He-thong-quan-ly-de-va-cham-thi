@@ -116,7 +116,7 @@ const ThemLop = () => {
             <Col md={6}>
               <Form.Group>
                 <Form.Label className="fw-bold small">Năm học <span className="text-danger">*</span></Form.Label>
-                <Form.Control type="text" placeholder="VD: 2025-2026" value={formData.year} onChange={(e) => handleInputChange('year', e.target.value)} />
+                <Form.Control type="text" placeholder="VD: 2025" value={formData.year} onChange={(e) => handleInputChange('year', e.target.value)} />
               </Form.Group>
             </Col>
           </Row>
