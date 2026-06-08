@@ -26,3 +26,8 @@ yarn-error.log*
 frontend/playwright-tests/
 playwright-report/
 test-results/
+
+# Admin files (local only)
+backend/src/main/java/com/se104/backend/controller/AdminController.java
+frontend/src/pages/admin/
+frontend/src/api/adminApi.js

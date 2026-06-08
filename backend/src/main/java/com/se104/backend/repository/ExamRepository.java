@@ -12,4 +12,6 @@ public interface ExamRepository extends JpaRepository<Exam, Integer>, JpaSpecifi
             Integer year,
             String teacherId
     );
+    java.util.Optional<Exam> findByExamCode(String examCode);
+    boolean existsByExamCode(String examCode);
 }

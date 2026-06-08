@@ -28,6 +28,16 @@ public class DataSeeder implements CommandLineRunner {
  
     @Override
     public void run(String... args) {
+        // ===== 0. SEED ADMIN =====
+        if (!teacherRepository.existsById("admin")) {
+            Teacher admin = Teacher.builder()
+                    .teacherId("admin")
+                    .fullName("Hệ thống Admin")
+                    .password(passwordEncoder.encode("admin123"))
+                    .build();
+            teacherRepository.save(admin);
+        }
+
         // ===== 1. SEED TEACHERS & SUBJECTS =====
         Teacher teacher1 = null;
         if (!teacherRepository.existsById("GV001")) {
@@ -119,16 +129,105 @@ public class DataSeeder implements CommandLineRunner {
         } else {
             subjectSs008 = subjectRepository.findById("SS008").orElse(null);
         }
+
+        Subject subjectIt002 = null;
+        if (!subjectRepository.existsById("IT002")) {
+            subjectIt002 = Subject.builder()
+                    .subjectId("IT002")
+                    .subjectName("Lập trình hướng đối tượng")
+                    .build();
+            subjectRepository.save(subjectIt002);
+            questionRepository.save(Question.builder().content("Trình bày khái niệm Tính đóng gói (Encapsulation) trong OOP và cho ví dụ?").answer("Tính đóng gói là việc che giấu thông tin chi tiết của đối tượng, chỉ cung cấp các phương thức public để truy cập. Ví dụ sử dụng private fields và public getter/setter.").difficulty("Dễ").subject(subjectIt002).build());
+            questionRepository.save(Question.builder().content("Phân biệt Class và Object trong lập trình hướng đối tượng?").answer("Class là khuôn mẫu thiết kế (blueprint) định nghĩa các thuộc tính và phương thức. Object là một thực thể cụ thể (instance) được tạo ra từ Class.").difficulty("Dễ").subject(subjectIt002).build());
+            questionRepository.save(Question.builder().content("Giải thích khái niệm Đa hình (Polymorphism) và sự khác biệt giữa Overloading và Overriding?").answer("Đa hình cho phép một đối tượng đóng vai trò dưới nhiều hình thức khác nhau. Overloading xảy ra trong cùng một Class (nhiều phương thức cùng tên khác tham số). Overriding xảy ra giữa Class cha và Class con (phương thức ở Class con ghi đè phương thức Class cha cùng tên và tham số).").difficulty("Trung bình").subject(subjectIt002).build());
+        } else {
+            subjectIt002 = subjectRepository.findById("IT002").orElse(null);
+        }
+
+        Subject subjectIt003 = null;
+        if (!subjectRepository.existsById("IT003")) {
+            subjectIt003 = Subject.builder()
+                    .subjectId("IT003")
+                    .subjectName("Cấu trúc dữ liệu và giải thuật")
+                    .build();
+            subjectRepository.save(subjectIt003);
+            questionRepository.save(Question.builder().content("Độ phức tạp thời gian (Time Complexity) của thuật toán sắp xếp nhanh (Quick Sort) trong trường hợp tốt nhất và tệ nhất là bao nhiêu?").answer("Tốt nhất là O(n log n) khi phân hoạch đều ở mỗi bước. Tệ nhất là O(n^2) khi mảng đã được sắp xếp tăng/giảm dần và chọn phần tử chốt đầu/cuối.").difficulty("Trung bình").subject(subjectIt003).build());
+            questionRepository.save(Question.builder().content("Trình bày sự khác biệt cơ bản giữa cấu trúc dữ liệu Stack (Ngăn xếp) và Queue (Hàng đợi)?").answer("Stack hoạt động theo cơ chế LIFO (Last In First Out - Vào sau ra trước), hỗ trợ thao tác push/pop. Queue hoạt động theo cơ chế FIFO (First In First Out - Vào trước ra trước), hỗ trợ thao tác enqueue/dequeue.").difficulty("Dễ").subject(subjectIt003).build());
+            questionRepository.save(Question.builder().content("Giải thuật duyệt đồ thị theo chiều rộng (BFS) sử dụng cấu trúc dữ liệu bổ trợ nào?").answer("Sử dụng cấu trúc dữ liệu Hàng đợi (Queue) để lưu trữ các đỉnh kề chuẩn bị duyệt.").difficulty("Dễ").subject(subjectIt003).build());
+        } else {
+            subjectIt003 = subjectRepository.findById("IT003").orElse(null);
+        }
+
+        Subject subjectIt004 = null;
+        if (!subjectRepository.existsById("IT004")) {
+            subjectIt004 = Subject.builder()
+                    .subjectId("IT004")
+                    .subjectName("Cơ sở dữ liệu")
+                    .build();
+            subjectRepository.save(subjectIt004);
+            questionRepository.save(Question.builder().content("Phân biệt giữa khóa chính (Primary Key) và khóa ngoại (Foreign Key) trong RDBMS?").answer("Khóa chính dùng để định danh duy nhất một bản ghi trong bảng, không được phép rỗng. Khóa ngoại là một trường trong bảng liên kết đến khóa chính của bảng khác nhằm ràng buộc dữ liệu.").difficulty("Dễ").subject(subjectIt004).build());
+            questionRepository.save(Question.builder().content("Trình bày các mức chuẩn hóa dữ liệu 1NF, 2NF và 3NF trong thiết kế cơ sở dữ liệu?").answer("1NF: Các thuộc tính đều là thuộc tính đơn. 2NF: Đạt 1NF và mọi thuộc tính phi khóa phải phụ thuộc hàm đầy đủ vào khóa chính. 3NF: Đạt 2NF và không có thuộc tính phi khóa nào phụ thuộc bắc cầu vào khóa chính.").difficulty("Trung bình").subject(subjectIt004).build());
+            questionRepository.save(Question.builder().content("Mục đích của việc sử dụng Transaction trong hệ quản trị cơ sở dữ liệu là gì?").answer("Đảm bảo tính nhất quán và toàn vẹn dữ liệu khi thực hiện một nhóm các thao tác cơ sở dữ liệu thông qua tính chất ACID (Atomicity, Consistency, Isolation, Durability).").difficulty("Khó").subject(subjectIt004).build());
+        } else {
+            subjectIt004 = subjectRepository.findById("IT004").orElse(null);
+        }
+
+        Subject subjectIt005 = null;
+        if (!subjectRepository.existsById("IT005")) {
+            subjectIt005 = Subject.builder()
+                    .subjectId("IT005")
+                    .subjectName("Mạng máy tính")
+                    .build();
+            subjectRepository.save(subjectIt005);
+            questionRepository.save(Question.builder().content("Mô hình OSI gồm có mấy tầng? Kể tên các tầng theo thứ tự từ thấp đến cao?").answer("Gồm 7 tầng: Vật lý (Physical), Liên kết dữ liệu (Data Link), Mạng (Network), Giao vận (Transport), Phiên (Session), Trình diễn (Presentation), Ứng dụng (Application).").difficulty("Dễ").subject(subjectIt005).build());
+            questionRepository.save(Question.builder().content("Phân biệt giao thức TCP và UDP?").answer("TCP hướng kết nối, truyền dữ liệu tin cậy, truyền tuần tự và có kiểm soát luồng. UDP không hướng kết nối, truyền dữ liệu nhanh, tốn ít băng thông hơn nhưng không đảm bảo tin cậy.").difficulty("Trung bình").subject(subjectIt005).build());
+        } else {
+            subjectIt005 = subjectRepository.findById("IT005").orElse(null);
+        }
+
+        Subject subjectSe114 = null;
+        if (!subjectRepository.existsById("SE114")) {
+            subjectSe114 = Subject.builder()
+                    .subjectId("SE114")
+                    .subjectName("Thiết kế phần mềm")
+                    .build();
+            subjectRepository.save(subjectSe114);
+            questionRepository.save(Question.builder().content("Design Pattern là gì? Kể tên 3 nhóm chính của Design Pattern?").answer("Design Pattern là các giải pháp mẫu cho các vấn đề phổ biến trong thiết kế phần mềm. 3 nhóm chính: Creational (Khởi tạo), Structural (Cấu trúc), Behavioral (Hành vi).").difficulty("Dễ").subject(subjectSe114).build());
+            questionRepository.save(Question.builder().content("Trình bày nguyên lý hoạt động của Singleton Pattern và cho ví dụ khi nào nên dùng?").answer("Singleton đảm bảo một lớp chỉ có duy nhất một đối tượng và cung cấp điểm truy cập toàn cục cho đối tượng đó. Thường dùng cho Database Connection Pool, Logger, Configuration Manager.").difficulty("Trung bình").subject(subjectSe114).build());
+        } else {
+            subjectSe114 = subjectRepository.findById("SE114").orElse(null);
+        }
+
+        Subject subjectSe320 = null;
+        if (!subjectRepository.existsById("SE320")) {
+            subjectSe320 = Subject.builder()
+                    .subjectId("SE320")
+                    .subjectName("Kiểm thử và đảm bảo chất lượng phần mềm")
+                    .build();
+            subjectRepository.save(subjectSe320);
+            questionRepository.save(Question.builder().content("Kiểm thử hồi quy (Regression Testing) là gì và tại sao nó lại quan trọng?").answer("Là việc kiểm thử lại phần mềm sau khi có sự thay đổi (sửa bug, thêm tính năng) để đảm bảo các chức năng cũ vẫn hoạt động bình thường, không bị lỗi mới phát sinh.").difficulty("Trung bình").subject(subjectSe320).build());
+            questionRepository.save(Question.builder().content("Phân biệt giữa Verification (Thẩm định) và Validation (Xác nhận) trong QA?").answer("Verification tập trung vào việc quy trình xây dựng phần mềm có đúng thiết kế không (Are we building the product right?). Validation tập trung vào việc sản phẩm phần mềm có đáp ứng đúng nhu cầu khách hàng không (Are we building the right product?).").difficulty("Trung bình").subject(subjectSe320).build());
+        } else {
+            subjectSe320 = subjectRepository.findById("SE320").orElse(null);
+        }
  
         // ===== 2. SEED TEACHER-SUBJECT LINKS =====
         seedTeacherSubject("GV001", "SE104", teacher1, subjectSe104);
         seedTeacherSubject("GV001", "SE101", teacher1, subjectSe101);
         seedTeacherSubject("GV001", "IT001", teacher1, subjectIt001);
+        seedTeacherSubject("GV001", "IT002", teacher1, subjectIt002);
+        seedTeacherSubject("GV001", "IT003", teacher1, subjectIt003);
+
         seedTeacherSubject("GV002", "SS001", teacher2, subjectSs001);
         seedTeacherSubject("GV002", "SS008", teacher2, subjectSs008);
         seedTeacherSubject("GV002", "SE104", teacher2, subjectSe104);
+        seedTeacherSubject("GV002", "IT004", teacher2, subjectIt004);
+        seedTeacherSubject("GV002", "IT005", teacher2, subjectIt005);
+
         seedTeacherSubject("GV003", "IT001", teacher3, subjectIt001);
         seedTeacherSubject("GV003", "SE104", teacher3, subjectSe104);
+        seedTeacherSubject("GV003", "SE114", teacher3, subjectSe114);
+        seedTeacherSubject("GV003", "SE320", teacher3, subjectSe320);
  
         // ===== 3. SEED STUDENTS =====
         List<Student> students = new ArrayList<>();
@@ -177,8 +276,13 @@ public class DataSeeder implements CommandLineRunner {
         }
  
         // ===== 5. SEED EXAMS =====
+        List<Question> allDbQuestions = questionRepository.findAll();
+
         Exam exam1 = null;
-        if (examRepository.count() == 0) {
+        if (!examRepository.existsByExamCode("GK_SE104")) {
+            List<Question> questionsForSe104 = allDbQuestions.stream()
+                    .filter(q -> "SE104".equals(q.getSubject().getSubjectId()))
+                    .toList();
             exam1 = Exam.builder()
                     .examCode("GK_SE104")
                     .semester("1")
@@ -188,10 +292,9 @@ public class DataSeeder implements CommandLineRunner {
                     .teacher(teacher1)
                     .build();
             examRepository.save(exam1);
- 
-            // Link questions to Exam
+
             int order = 1;
-            for (Question q : questionsSe104) {
+            for (Question q : questionsForSe104) {
                 ExamQuestionId eqId = new ExamQuestionId(exam1.getExamId(), q.getQuestionId());
                 ExamQuestion eq = ExamQuestion.builder()
                         .id(eqId)
@@ -202,7 +305,147 @@ public class DataSeeder implements CommandLineRunner {
                 examQuestionRepository.save(eq);
             }
         } else {
-            exam1 = examRepository.findAll().get(0);
+            exam1 = examRepository.findByExamCode("GK_SE104").orElse(null);
+        }
+
+        // Seed CK_IT002 (OOP Exam)
+        if (!examRepository.existsByExamCode("CK_IT002") && subjectIt002 != null) {
+            List<Question> questionsIt002 = allDbQuestions.stream()
+                    .filter(q -> "IT002".equals(q.getSubject().getSubjectId()))
+                    .toList();
+            Exam exam2 = Exam.builder()
+                    .examCode("CK_IT002")
+                    .semester("1")
+                    .year(2026)
+                    .duration(90)
+                    .subject(subjectIt002)
+                    .teacher(teacher1)
+                    .build();
+            examRepository.save(exam2);
+
+            int order = 1;
+            for (Question q : questionsIt002) {
+                ExamQuestionId eqId = new ExamQuestionId(exam2.getExamId(), q.getQuestionId());
+                ExamQuestion eq = ExamQuestion.builder()
+                        .id(eqId)
+                        .exam(exam2)
+                        .question(q)
+                        .questionOrder(order++)
+                        .build();
+                examQuestionRepository.save(eq);
+            }
+        }
+
+        // Seed GK_IT003 (DSA Exam)
+        if (!examRepository.existsByExamCode("GK_IT003") && subjectIt003 != null) {
+            List<Question> questionsIt003 = allDbQuestions.stream()
+                    .filter(q -> "IT003".equals(q.getSubject().getSubjectId()))
+                    .toList();
+            Exam exam3 = Exam.builder()
+                    .examCode("GK_IT003")
+                    .semester("1")
+                    .year(2026)
+                    .duration(90)
+                    .subject(subjectIt003)
+                    .teacher(teacher1)
+                    .build();
+            examRepository.save(exam3);
+
+            int order = 1;
+            for (Question q : questionsIt003) {
+                ExamQuestionId eqId = new ExamQuestionId(exam3.getExamId(), q.getQuestionId());
+                ExamQuestion eq = ExamQuestion.builder()
+                        .id(eqId)
+                        .exam(exam3)
+                        .question(q)
+                        .questionOrder(order++)
+                        .build();
+                examQuestionRepository.save(eq);
+            }
+        }
+
+        // Seed CK_IT004 (DB Exam)
+        if (!examRepository.existsByExamCode("CK_IT004") && subjectIt004 != null) {
+            List<Question> questionsIt004 = allDbQuestions.stream()
+                    .filter(q -> "IT004".equals(q.getSubject().getSubjectId()))
+                    .toList();
+            Exam exam4 = Exam.builder()
+                    .examCode("CK_IT004")
+                    .semester("1")
+                    .year(2026)
+                    .duration(90)
+                    .subject(subjectIt004)
+                    .teacher(teacher2)
+                    .build();
+            examRepository.save(exam4);
+
+            int order = 1;
+            for (Question q : questionsIt004) {
+                ExamQuestionId eqId = new ExamQuestionId(exam4.getExamId(), q.getQuestionId());
+                ExamQuestion eq = ExamQuestion.builder()
+                        .id(eqId)
+                        .exam(exam4)
+                        .question(q)
+                        .questionOrder(order++)
+                        .build();
+                examQuestionRepository.save(eq);
+            }
+        }
+
+        // Seed CK_IT005 (Network Exam)
+        if (!examRepository.existsByExamCode("CK_IT005") && subjectIt005 != null) {
+            List<Question> questionsIt005 = allDbQuestions.stream()
+                    .filter(q -> "IT005".equals(q.getSubject().getSubjectId()))
+                    .toList();
+            Exam exam5 = Exam.builder()
+                    .examCode("CK_IT005")
+                    .semester("1")
+                    .year(2026)
+                    .duration(90)
+                    .subject(subjectIt005)
+                    .teacher(teacher2)
+                    .build();
+            examRepository.save(exam5);
+
+            int order = 1;
+            for (Question q : questionsIt005) {
+                ExamQuestionId eqId = new ExamQuestionId(exam5.getExamId(), q.getQuestionId());
+                ExamQuestion eq = ExamQuestion.builder()
+                        .id(eqId)
+                        .exam(exam5)
+                        .question(q)
+                        .questionOrder(order++)
+                        .build();
+                examQuestionRepository.save(eq);
+            }
+        }
+
+        // Seed CK_SE114 (Software Design Exam)
+        if (!examRepository.existsByExamCode("CK_SE114") && subjectSe114 != null) {
+            List<Question> questionsSe114 = allDbQuestions.stream()
+                    .filter(q -> "SE114".equals(q.getSubject().getSubjectId()))
+                    .toList();
+            Exam exam6 = Exam.builder()
+                    .examCode("CK_SE114")
+                    .semester("1")
+                    .year(2026)
+                    .duration(90)
+                    .subject(subjectSe114)
+                    .teacher(teacher3)
+                    .build();
+            examRepository.save(exam6);
+
+            int order = 1;
+            for (Question q : questionsSe114) {
+                ExamQuestionId eqId = new ExamQuestionId(exam6.getExamId(), q.getQuestionId());
+                ExamQuestion eq = ExamQuestion.builder()
+                        .id(eqId)
+                        .exam(exam6)
+                        .question(q)
+                        .questionOrder(order++)
+                        .build();
+                examQuestionRepository.save(eq);
+            }
         }
  
         // ===== 6. SEED CLASSES =====

@@ -16,12 +16,22 @@ const Layout = ({ children }) => {
     navigate('/dang-nhap');
   };
 
-  const navItems = [
-    { to: '/', label: 'Tổng quan', icon: 'bi-grid-1x2-fill' },
-    { to: '/de-thi', label: 'Quản lý đề thi', icon: 'bi-file-earmark-text-fill' },
-    { to: '/ngan-hang-cau-hoi', label: 'Ngân hàng câu hỏi', icon: 'bi-database-fill' },
-    { to: '/quan-ly-lop', label: 'Lớp học & Chấm thi', icon: 'bi-person-badge-fill' },
-  ];
+  const isAdmin = userId === 'admin';
+
+  const navItems = isAdmin 
+    ? [
+        { to: '/admin', label: 'Tổng quan Admin', icon: 'bi-grid-1x2-fill' },
+        { to: '/admin/giao-vien', label: 'Quản lý giáo viên', icon: 'bi-people-fill' },
+        { to: '/admin/mon-hoc', label: 'Quản lý môn học', icon: 'bi-journal-bookmark-fill' },
+        { to: '/de-thi', label: 'Quản lý đề thi', icon: 'bi-file-earmark-text-fill' },
+        { to: '/ngan-hang-cau-hoi', label: 'Ngân hàng câu hỏi', icon: 'bi-database-fill' },
+      ]
+    : [
+        { to: '/', label: 'Tổng quan', icon: 'bi-grid-1x2-fill' },
+        { to: '/de-thi', label: 'Quản lý đề thi', icon: 'bi-file-earmark-text-fill' },
+        { to: '/ngan-hang-cau-hoi', label: 'Ngân hàng câu hỏi', icon: 'bi-database-fill' },
+        { to: '/quan-ly-lop', label: 'Lớp học & Chấm thi', icon: 'bi-person-badge-fill' },
+      ];
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/';

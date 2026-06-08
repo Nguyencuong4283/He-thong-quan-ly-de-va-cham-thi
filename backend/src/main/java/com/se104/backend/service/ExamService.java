@@ -42,7 +42,9 @@ public class ExamService {
         String teacherId= SecurityUtil.getCurrentTeacherId();
         Specification<Exam> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.equal(root.get("teacher").get("teacherId"), teacherId));
+            if (!"admin".equals(teacherId)) {
+                predicates.add(criteriaBuilder.equal(root.get("teacher").get("teacherId"), teacherId));
+            }
             if (subjectId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("subject").get("subjectId"), subjectId));
             }
@@ -63,7 +65,7 @@ public class ExamService {
         String teacherId=SecurityUtil.getCurrentTeacherId();
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
-        if (!exam.getTeacher().getTeacherId().equals(teacherId))
+        if (!"admin".equals(teacherId) && !exam.getTeacher().getTeacherId().equals(teacherId))
             throw new BusinessException("Unauthorized access to exam");
         List<QuestionDetailResponse> questions=exam.getExamQuestions()
                 .stream()
@@ -115,7 +117,7 @@ public class ExamService {
             String teacherId=SecurityUtil.getCurrentTeacherId();
             Exam exam = examRepository.findById(examId)
                     .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
-            if (!exam.getTeacher().getTeacherId().equals(teacherId))
+            if (!"admin".equals(teacherId) && !exam.getTeacher().getTeacherId().equals(teacherId))
                 throw new BusinessException("Unauthorized access to exam");
             List<Question> questions = questionRepository.findAllById(examUpdateRequest.getQuestionsId());
             if (questions.size() != examUpdateRequest.getQuestionsId().size()) {

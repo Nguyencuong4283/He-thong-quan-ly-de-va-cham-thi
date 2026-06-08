@@ -18,11 +18,15 @@ import DanhSachHocSinhChamThi from './pages/DanhSachHocSinhChamThi';
 import ChamDiem from './pages/ChamDiem';
 import XemChiTietBaiThi from './pages/XemChiTietBaiThi';
 import PrintExam from './pages/PrintExam';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ManageTeachers from './pages/admin/ManageTeachers';
+import ManageSubjects from './pages/admin/ManageSubjects';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
   const loginTime = localStorage.getItem('loginTime');
+  const userId = localStorage.getItem('userId');
   const SESSION_TIMEOUT = 14400000; 
   const isExpired = loginTime && (Date.now() - parseInt(loginTime) > SESSION_TIMEOUT);
 
@@ -32,8 +36,54 @@ const ProtectedRoute = ({ children }) => {
       localStorage.removeItem('token');
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('loginTime');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userName');
     }
     return <Navigate to="/dang-nhap" replace />;
+  }
+
+  return children;
+};
+
+const AdminProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const loginTime = localStorage.getItem('loginTime');
+  const userId = localStorage.getItem('userId');
+  const SESSION_TIMEOUT = 14400000; 
+  const isExpired = loginTime && (Date.now() - parseInt(loginTime) > SESSION_TIMEOUT);
+
+  if (!token || !isAuthenticated || isExpired) {
+    if (isExpired) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('loginTime');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userName');
+    }
+    return <Navigate to="/dang-nhap" replace />;
+  }
+
+  if (userId !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const loginTime = localStorage.getItem('loginTime');
+  const userId = localStorage.getItem('userId');
+  const SESSION_TIMEOUT = 14400000; 
+  const isExpired = loginTime && (Date.now() - parseInt(loginTime) > SESSION_TIMEOUT);
+
+  if (token && isAuthenticated && !isExpired) {
+    if (userId === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -43,8 +93,13 @@ function App() {
     <ThemeProvider>
       <Router>
         <Routes>
-          <Route path="/dang-nhap" element={<DangNhap />} />
+          <Route path="/dang-nhap" element={<PublicRoute><DangNhap /></PublicRoute>} />
           
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminProtectedRoute><Layout><AdminDashboard /></Layout></AdminProtectedRoute>} />
+          <Route path="/admin/giao-vien" element={<AdminProtectedRoute><Layout><ManageTeachers /></Layout></AdminProtectedRoute>} />
+          <Route path="/admin/mon-hoc" element={<AdminProtectedRoute><Layout><ManageSubjects /></Layout></AdminProtectedRoute>} />
+
           <Route path="/" element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
           
           {/* Quản lý Đề thi */}

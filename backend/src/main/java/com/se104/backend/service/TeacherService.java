@@ -6,6 +6,7 @@ import com.se104.backend.dto.response.SubjectResponse;
 import com.se104.backend.dto.response.TeacherLoginResponse;
 import com.se104.backend.entity.Teacher;
 import com.se104.backend.repository.TeacherRepository;
+import com.se104.backend.repository.SubjectRepository;
 import com.se104.backend.util.JwtUtil;
 import com.se104.backend.util.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +23,7 @@ public class TeacherService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final TeacherRepository teacherRepository;
+    private final SubjectRepository subjectRepository;
 
     public TeacherLoginResponse login(TeacherLoginRequest request) {
 
@@ -49,6 +51,14 @@ public class TeacherService {
     }
     public List<SubjectResponse> getSubjects() {
         String teacherId= SecurityUtil.getCurrentTeacherId();
+        if ("admin".equals(teacherId)) {
+            return subjectRepository.findAll().stream()
+                    .map(subject -> SubjectResponse.builder()
+                            .subjectId(subject.getSubjectId())
+                            .subjectName(subject.getSubjectName())
+                            .build())
+                    .toList();
+        }
         Teacher teacher=teacherRepository.findById(teacherId)
                 .orElseThrow(()->new EntityNotFoundException("Teacher not found"));
         return teacher.getTeacherSubjects().stream()

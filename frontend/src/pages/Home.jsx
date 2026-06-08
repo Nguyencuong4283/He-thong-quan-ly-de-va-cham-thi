@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import reportApi from '../api/reportApi';
 
@@ -12,6 +12,13 @@ const defaultDashboard = {
 };
 
 const Home = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem('userId') === 'admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [navigate]);
   // Tự động sinh danh sách năm từ 2024 đến hiện tại
   const startYear = 2024;
   const currentYear = new Date().getFullYear();

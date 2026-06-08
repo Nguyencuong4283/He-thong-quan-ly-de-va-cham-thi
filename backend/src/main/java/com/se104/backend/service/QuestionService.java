@@ -34,12 +34,14 @@ public class QuestionService {
         Specification<Question> spec=((root, query, criteriaBuilder) ->
         {
             List<Predicate> predicates = new ArrayList<>();
-            Join<Question, Subject> subjectJoin = root.join("subject");
-            Join<Subject, TeacherSubject> teacherSubjectJoin = subjectJoin.join("teacherSubjects");
-            predicates.add(criteriaBuilder.equal(teacherSubjectJoin.get("teacher").get("teacherId"), teacherId));
-            if(subjectId!=null){
+            if (!"admin".equals(teacherId)) {
+                Join<Question, Subject> subjectJoin = root.join("subject");
+                Join<Subject, TeacherSubject> teacherSubjectJoin = subjectJoin.join("teacherSubjects");
+                predicates.add(criteriaBuilder.equal(teacherSubjectJoin.get("teacher").get("teacherId"), teacherId));
+            }
+            if(subjectId!=null && !subjectId.trim().isEmpty()){
                 predicates.add(criteriaBuilder.equal(root.get("subject").get("subjectId"),subjectId));}
-            if (difficulty != null)
+            if (difficulty != null && !difficulty.trim().isEmpty())
                 predicates.add(criteriaBuilder.equal(root.get("difficulty"), difficulty));
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         });
