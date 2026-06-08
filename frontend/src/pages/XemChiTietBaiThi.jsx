@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Badge } from 'react-bootstrap';
 import { submissionApi } from '../api/submissionApi';
 import classApi from '../api/classApi';
-
+ 
 const XemChiTietBaiThi = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
-
+ 
   useEffect(() => {
     const loadDetail = async () => {
       setLoading(true);
@@ -39,9 +39,9 @@ const XemChiTietBaiThi = () => {
     };
     loadDetail();
   }, [id]);
-
+ 
   if (loading) return <Container className="py-5 text-center"><p>Đang tải...</p></Container>;
-
+ 
   return (
     <Container fluid>
       <div className="mb-4">
@@ -53,7 +53,16 @@ const XemChiTietBaiThi = () => {
             <h2 className="fw-bold text-dark mb-1">CHI TIẾT ĐIỂM BÀI THI</h2>
             <p className="text-muted small">Mã bài nộp: {id} | Mã đề: <span className="text-primary fw-bold">{data?.examCode || '---'}</span></p>
           </div>
-          <div className="d-flex gap-3">
+          <div className="d-flex gap-3 align-items-center">
+            <Button 
+              as={Link} 
+              to={`/cham-thi/cham-diem/${id}`}
+              variant="warning"
+              className="fw-bold px-4 py-2.5 rounded-3 shadow-sm d-flex align-items-center gap-2 text-dark"
+              style={{ height: 'fit-content' }}
+            >
+              <i className="bi bi-pencil-square"></i> Sửa điểm
+            </Button>
             <Card className="border-0 shadow-sm px-4 py-2 text-center bg-light">
               <h6 className="text-muted small mb-0 fw-bold">Điểm chữ</h6>
               <p className="mb-0 fw-bold fs-5 text-dark">{data.scoreText}</p>

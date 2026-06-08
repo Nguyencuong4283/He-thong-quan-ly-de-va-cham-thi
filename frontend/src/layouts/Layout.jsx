@@ -98,21 +98,6 @@ const Layout = ({ children }) => {
             </h4>
             
             <div className="d-flex align-items-center gap-4">
-              {/* Nút Theme Toggle */}
-              <div 
-                className="theme-toggle-btn border shadow-sm" 
-                onClick={toggleTheme}
-                title="Đổi giao diện"
-                style={{ 
-                  cursor: 'pointer', width: '42px', height: '42px', 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                  borderRadius: '12px', backgroundColor: 'var(--surface-color)',
-                  color: 'var(--bs-secondary-color)', transition: 'all 0.3s'
-                }}
-              >
-                <i className={`bi bi-${theme === 'light' ? 'moon-stars-fill' : 'sun-fill'} fs-5`}></i>
-              </div>
-
               {/* Tên tài khoản */}
               <div className="d-flex align-items-center gap-2 px-3 py-2 bg-body-secondary rounded-4 border shadow-xs">
                 <div className="avatar-square shadow-sm" style={{ width: '28px', height: '28px', borderRadius: '8px' }}>{userName.charAt(0)}</div>

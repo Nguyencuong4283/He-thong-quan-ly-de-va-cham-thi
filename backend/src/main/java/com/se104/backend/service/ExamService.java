@@ -87,6 +87,14 @@ public class ExamService {
         if (questions.size() != examCreateRequest.getQuestionsId().size()) {
             throw new EntityNotFoundException("Some questions not found");
         }
+ 
+        // Kiểm tra môn học của từng câu hỏi
+        for (Question q : questions) {
+            if (!q.getSubject().getSubjectId().equals(examCreateRequest.getSubjectId())) {
+                throw new BusinessException("Đề thi chỉ được phép chứa các câu hỏi thuộc môn " + subject.getSubjectName());
+            }
+        }
+ 
         Exam exam=Exam.builder()
                 .examCode(examCreateRequest.getExamCode())
                 .semester(examCreateRequest.getSemester())
@@ -113,6 +121,14 @@ public class ExamService {
             if (questions.size() != examUpdateRequest.getQuestionsId().size()) {
                 throw new EntityNotFoundException("Some questions not found");
             }
+ 
+            // Kiểm tra môn học của từng câu hỏi
+            for (Question q : questions) {
+                if (!q.getSubject().getSubjectId().equals(exam.getSubject().getSubjectId())) {
+                    throw new BusinessException("Đề thi chỉ được phép chứa các câu hỏi thuộc môn " + exam.getSubject().getSubjectName());
+                }
+            }
+ 
             exam.setDuration(examUpdateRequest.getDuration());
             log.info("Before clear: examQuestions size");
             exam.getExamQuestions().clear();

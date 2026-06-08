@@ -92,18 +92,24 @@ public class ClazzService {
                 .orElseThrow(() -> new EntityNotFoundException("Class not found"));
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
-
+ 
+        // Kiểm tra xem lớp đang trong quá trình chấm thi hay không (có ít nhất một bài nộp đã được chấm)
+        List<Submission> submissions = submissionRepository.findByClazz_ClassId(classId);
+        boolean isGradingInProgress = submissions.stream().anyMatch(Submission::isStatus);
+        if (isGradingInProgress) {
+            throw new BusinessException("Lớp đang trong quá trình chấm thi, không được phép đổi đề thi!");
+        }
+ 
         // Update the exam for the Clazz
         clazz.setExam(exam);
         classRepository.save(clazz);
-
-        // Find all submissions for this class and update their exam
-        List<Submission> submissions = submissionRepository.findByClazz_ClassId(classId);
+ 
+        // Update all submissions' exam
         for (Submission submission : submissions) {
             submission.setExam(exam);
         }
         submissionRepository.saveAll(submissions); // Save all updated submissions
-
+ 
         return ClassUpdateResponse.builder()
                 .classId(clazz.getClassId())
                 .examCode(clazz.getExam().getExamCode())

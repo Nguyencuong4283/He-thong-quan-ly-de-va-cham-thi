@@ -105,9 +105,9 @@ const DanhSachHocSinhChamThi = () => {
       <Card className="border shadow-sm overflow-hidden">
         <div className="px-4 py-3 bg-light border-bottom d-flex justify-content-between align-items-center">
            <h5 className="mb-0 fw-bold text-dark small text-uppercase">Danh sách bài nộp của học sinh</h5>
-           <div className="d-flex gap-2">
-             <Badge bg="success" className="rounded-pill px-3 fw-bold">Đã chấm: {submissions.filter(s => s.status === true).length}</Badge>
-             <Badge bg="warning" text="dark" className="rounded-pill px-3 fw-bold">Chưa chấm: {submissions.filter(s => s.status === false).length}</Badge>
+           <div className="d-flex gap-2 align-items-center">
+             <Badge bg="success" className="rounded-pill px-3 py-2 fw-bold shadow-sm">Đã chấm: {submissions.filter(s => s.status === true).length}</Badge>
+             <Badge bg="warning" text="dark" className="rounded-pill px-3 py-2 fw-bold shadow-sm">Chưa chấm: {submissions.filter(s => s.status === false).length}</Badge>
               <Button variant="success" className="fw-bold" onClick={handleExportScore}>
                 <i className="bi bi-file-earmark-excel me-2"></i>
                 Xuất bảng điểm
@@ -121,7 +121,7 @@ const DanhSachHocSinhChamThi = () => {
               <th className="px-4 py-3 border-0 text-dark">Họ tên học sinh</th>
               <th className="px-4 py-3 border-0 text-center text-dark">Trạng thái</th>
               <th className="px-4 py-3 border-0 text-center text-dark">Điểm số</th>
-              <th className="px-4 py-3 border-0 text-end text-dark">Thao tác</th>
+              <th className="px-4 py-3 border-0 text-end text-dark" style={{ minWidth: '220px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -139,14 +139,40 @@ const DanhSachHocSinhChamThi = () => {
                   {s.score !== -1 ? `${s.score}/10` : '--'}
                 </td>
                 <td className="px-4 py-3 text-end">
-                  <Button 
-                    as={Link} 
-                    to={s.status ? `/cham-thi/xem-chi-tiet/${s.submissionId}` : `/cham-thi/cham-diem/${s.submissionId}`}
-                    className={`fw-bold px-4 rounded-3 shadow-sm ${s.status ? 'btn-outline-dark border-2' : 'btn-primary'}`}
-                    size="sm"
-                  >
-                    {s.status ? 'Xem lại' : 'Chấm ngay'}
-                  </Button>
+                  <div className="d-flex gap-2 justify-content-end">
+                    {s.status ? (
+                      <>
+                        <Button 
+                          as={Link} 
+                          to={`/cham-thi/xem-chi-tiet/${s.submissionId}`}
+                          variant="outline-dark"
+                          className="fw-bold px-3 rounded-3 shadow-sm border-2"
+                          size="sm"
+                        >
+                          Xem lại
+                        </Button>
+                        <Button 
+                          as={Link} 
+                          to={`/cham-thi/cham-diem/${s.submissionId}`}
+                          variant="warning"
+                          className="fw-bold px-3 rounded-3 shadow-sm text-dark"
+                          size="sm"
+                        >
+                          Sửa điểm
+                        </Button>
+                      </>
+                    ) : (
+                      <Button 
+                        as={Link} 
+                        to={`/cham-thi/cham-diem/${s.submissionId}`}
+                        variant="primary"
+                        className="fw-bold px-4 rounded-3 shadow-sm"
+                        size="sm"
+                      >
+                        Chấm ngay
+                      </Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

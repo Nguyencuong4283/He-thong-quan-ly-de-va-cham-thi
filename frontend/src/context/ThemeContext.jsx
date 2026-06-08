@@ -1,26 +1,25 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
+ 
 const ThemeContext = createContext();
-
+ 
 export const ThemeProvider = ({ children }) => {
-  // Lấy theme từ localStorage hoặc mặc định là light
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-
+  // Khóa theme ở chế độ light (sáng) cố định
+  const theme = 'light';
+ 
   useEffect(() => {
-    // Cập nhật thuộc tính data-bs-theme của thẻ html
-    document.documentElement.setAttribute('data-bs-theme', theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
+    document.documentElement.setAttribute('data-bs-theme', 'light');
+    localStorage.setItem('theme', 'light');
+  }, []);
+ 
   const toggleTheme = () => {
-    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+    // Không làm gì vì đã khóa ở light mode
   };
-
+ 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
 };
-
+ 
 export const useTheme = () => useContext(ThemeContext);

@@ -162,26 +162,16 @@ const DangNhap = () => {
                     </InputGroup>
                   </Form.Group>
 
-                  <div className="d-flex justify-content-between align-items-center mb-4">
+                  <div className="d-flex justify-content-start mb-4">
                     <Form.Check type="checkbox" label={<span className="small text-muted">Ghi nhớ đăng nhập</span>} />
-                    <a href="#" className="small text-primary text-decoration-none fw-semibold">Quên mật khẩu?</a>
                   </div>
-
-                 <div className="d-flex justify-content-center">
-                  <Button variant="primary" type="submit" className="py-2 fw-bold shadow-sm">
-                    Đăng nhập
-                  </Button>
-                </div>
+ 
+                  <div className="d-flex justify-content-center">
+                    <Button variant="primary" type="submit" className="py-2 fw-bold shadow-sm">
+                      Đăng nhập
+                    </Button>
+                  </div>
                 </Form>
-
-                <div className="mt-4 text-center">
-                  <p className="small text-muted">
-                    Chưa có tài khoản?{' '}
-                    <Link to="/dang-ky" className="text-primary fw-bold text-decoration-none">
-                      Đăng ký ngay
-                    </Link>
-                  </p>
-                </div>
               </Card.Body>
             </Card>
             <div className="text-center mt-4">

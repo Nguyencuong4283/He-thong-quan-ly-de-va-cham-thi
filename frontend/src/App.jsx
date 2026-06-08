@@ -4,7 +4,6 @@ import { ThemeProvider } from './context/ThemeContext';
 import Layout from './layouts/Layout';
 import Home from './pages/Home';
 import DangNhap from './pages/DangNhap';
-import DangKy from './pages/DangKy';
 import DeThi from './pages/DeThi';
 import TaoDeThiMoi from './pages/TaoDeThiMoi';
 import ChinhSuaDeThi from './pages/ChinhSuaDeThi';
@@ -45,7 +44,6 @@ function App() {
       <Router>
         <Routes>
           <Route path="/dang-nhap" element={<DangNhap />} />
-          <Route path="/dang-ky" element={<DangKy />} />
           
           <Route path="/" element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
           

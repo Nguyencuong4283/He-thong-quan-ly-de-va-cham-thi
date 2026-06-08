@@ -274,10 +274,10 @@ const ChinhSuaDeThi = () => {
         <Modal.Body>
           <Row className="mb-3 g-2">
             <Col md={6}>
-              <Form.Select size="sm" value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
-                <option value="">Tất cả môn học</option>
-                {Array.from(new Set(bankQuestions.map(b => b.subjectName || b.subject))).map(s => <option key={s} value={s}>{s}</option>)}
-              </Form.Select>
+              <Form.Group className="d-flex align-items-center gap-2">
+                <span className="small fw-bold text-dark text-nowrap">Môn học đang lọc:</span>
+                <Form.Control size="sm" type="text" value={loadedSubjectName || ''} disabled className="fw-bold text-primary" />
+              </Form.Group>
             </Col>
             <Col md={6}>
               <Form.Select size="sm" value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}>
@@ -289,11 +289,11 @@ const ChinhSuaDeThi = () => {
             </Col>
           </Row>
           <div className="overflow-auto" style={{ maxHeight: '400px' }}>
-            {bankQuestions.filter(b => (filterSubject === '' || b.subjectName === filterSubject) && (filterDifficulty === '' || b.difficulty === filterDifficulty) && !questions.some(q => q.id === (b.questionId || b.id))).length === 0 ? (
+            {bankQuestions.filter(b => b.subjectName === loadedSubjectName && (filterDifficulty === '' || b.difficulty === filterDifficulty) && !questions.some(q => q.id === (b.questionId || b.id))).length === 0 ? (
               <p className="text-center py-4 text-muted">Không còn câu hỏi phù hợp</p>
             ) : (
               <div className="list-group">
-                {bankQuestions.filter(b => (filterSubject === '' || b.subjectName === filterSubject) && (filterDifficulty === '' || b.difficulty === filterDifficulty) && !questions.some(q => q.id === (b.questionId || b.id))).map(b => (
+                {bankQuestions.filter(b => b.subjectName === loadedSubjectName && (filterDifficulty === '' || b.difficulty === filterDifficulty) && !questions.some(q => q.id === (b.questionId || b.id))).map(b => (
                   <button key={b.questionId || b.id} className="list-group-item list-group-item-action p-3" onClick={() => addQuestionFromBank(b)}>
                     <div className="d-flex justify-content-between align-items-center mb-1">
                       <span className="fw-bold text-primary">{b.questionId || b.id}</span>

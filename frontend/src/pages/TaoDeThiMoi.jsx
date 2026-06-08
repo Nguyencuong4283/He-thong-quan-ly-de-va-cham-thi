@@ -70,11 +70,17 @@ const TaoDeThiMoi = () => {
   const handleInputChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
+    if (field === 'maMonThi') {
+      setSelectedQuestions([]); // Reset danh sách câu hỏi nếu đổi môn thi
+    }
   };
+
+  const selectedSubjectName = subjectList.find(s => String(s.subjectId || s.id) === String(formData.maMonThi))?.subjectName;
 
   const filteredBankQuestions = bankQuestions.filter((q) => {
     const matchesDifficulty = filterDifficulty === '' || q.difficulty === filterDifficulty;
-    const matchesSubject = filterSubject === '' || q.subjectName === filterSubject;
+    // Chỉ lấy câu hỏi thuộc cùng môn học với đề thi đang tạo
+    const matchesSubject = q.subjectName === selectedSubjectName;
     const notSelected = !selectedQuestions.some((sq) => sq.id === q.questionId || sq.id === q.id);
     return matchesDifficulty && matchesSubject && notSelected;
   });
@@ -197,7 +203,7 @@ const TaoDeThiMoi = () => {
           <div className="mb-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h5 className="fw-bold mb-0">Câu hỏi (Tối đa 5 câu)</h5>
-              <Button variant="success" size="sm" onClick={() => setShowQuestionBank(true)} disabled={selectedQuestions.length >= 5}>
+              <Button variant="success" size="sm" onClick={() => setShowQuestionBank(true)} disabled={!formData.maMonThi || selectedQuestions.length >= 5}>
                 <i className="bi bi-plus-lg"></i> Thêm câu hỏi
               </Button>
             </div>
@@ -242,10 +248,10 @@ const TaoDeThiMoi = () => {
         <Modal.Body>
           <Row className="mb-3 g-2">
             <Col md={6}>
-              <Form.Select size="sm" value={filterSubject} onChange={(e) => setFilterSubject(e.target.value)}>
-                <option value="">Tất cả môn học</option>
-                {bankSubjects.map(s => <option key={s} value={s}>{s}</option>)}
-              </Form.Select>
+              <Form.Group className="d-flex align-items-center gap-2">
+                <span className="small fw-bold text-dark text-nowrap">Môn học đang lọc:</span>
+                <Form.Control size="sm" type="text" value={selectedSubjectName || ''} disabled className="fw-bold text-primary" />
+              </Form.Group>
             </Col>
             <Col md={6}>
               <Form.Select size="sm" value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}>

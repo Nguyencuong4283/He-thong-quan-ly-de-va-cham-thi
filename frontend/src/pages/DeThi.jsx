@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Table, Button, Card } from 'react-bootstrap';
+import { Container, Table, Button, Card, Modal, Spinner } from 'react-bootstrap';
 import examApi from '../api/examApi';
 import { mapExamList } from '../models/exam';
 import {Dropdown} from 'react-bootstrap';
@@ -10,6 +10,11 @@ const DeThi = () => {
   const [exams, setExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Preview Modal States
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewExam, setPreviewExam] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -30,8 +35,27 @@ const DeThi = () => {
     };
     load();
   }, []);
+
+  const handleShowPreview = async (examId) => {
+    setShowPreview(true);
+    setPreviewLoading(true);
+    try {
+      const res = await examApi.getExamById(examId);
+      if (res && res.success) {
+        setPreviewExam(res.data);
+      } else {
+        setPreviewExam(null);
+      }
+    } catch (err) {
+      console.error('Fetch exam details error', err);
+      setPreviewExam(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const handlePrint = (examId, type) => {
-  navigate(`/print-exam/${examId}?type=${type}`);
+    navigate(`/print-exam/${examId}?type=${type}`);
   };
 
   return (
@@ -68,7 +92,14 @@ const DeThi = () => {
             ) : (
               exams.map((exam) => (
                 <tr key={exam.examId} className="align-middle">
-                  <td className="px-4 py-3 fw-bold text-primary">{exam.examCode || exam.examId}</td>
+                  <td className="px-4 py-3">
+                    <span 
+                      className="clickable-code text-primary fw-bold"
+                      onClick={() => handleShowPreview(exam.examId)}
+                    >
+                      {exam.examCode || exam.examId}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 fw-bold" style={{ color: 'var(--bs-body-color)' }}>{exam.subjectName}</td>
                   <td className="px-4 py-3 text-secondary fw-medium">{exam.semester} | {exam.year}</td>
                   <td className="px-4 py-3 text-secondary fw-medium">{exam.duration ? `${exam.duration} phút` : '-'}</td>
@@ -96,7 +127,98 @@ const DeThi = () => {
         </Table>
       </Card>
 
+      {/* Modal Xem trước đề thi */}
+      <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg" centered>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">Xem trước đề thi</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-2">
+          {previewLoading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" variant="primary" className="mb-2" />
+              <div className="text-muted fw-semibold">Đang tải chi tiết đề thi...</div>
+            </div>
+          ) : previewExam ? (
+            <div>
+              {/* Thông tin chung */}
+              <div className="mb-4 p-3 bg-light rounded-3 border">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <div className="small text-secondary fw-semibold">Môn học</div>
+                    <div className="fw-bold text-dark">{previewExam.examSummary?.subjectName || '-'}</div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="small text-secondary fw-semibold">Mã đề thi</div>
+                    <div className="fw-bold text-dark">{previewExam.examSummary?.examCode || previewExam.examSummary?.examId || '-'}</div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="small text-secondary fw-semibold">Học kỳ & Năm học</div>
+                    <div className="fw-bold text-dark">{previewExam.examSummary?.semester || '-'} | {previewExam.examSummary?.year || '-'}</div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="small text-secondary fw-semibold">Thời gian làm bài</div>
+                    <div className="fw-bold text-dark">{previewExam.examSummary?.duration ? `${previewExam.examSummary?.duration} phút` : '-'}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Danh sách câu hỏi */}
+              <h5 className="fw-bold text-dark mb-3">Nội dung câu hỏi ({previewExam.questions?.length || 0})</h5>
+              {(!previewExam.questions || previewExam.questions.length === 0) ? (
+                <div className="text-center py-4 text-muted border rounded-3 bg-white">
+                  Đề thi này chưa có câu hỏi nào.
+                </div>
+              ) : (
+                <div className="d-flex flex-column gap-3">
+                  {previewExam.questions.map((q, idx) => (
+                    <div key={q.questionId} className="p-3 border rounded-3 bg-white shadow-xs">
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <span className="fw-bold text-primary">Câu {idx + 1} (Mã: {q.questionId})</span>
+                        <span className={`badge rounded-pill px-2.5 py-1 fw-bold ${
+                          q.difficulty === 'Dễ' ? 'bg-success text-white' : 
+                          q.difficulty === 'Khó' ? 'bg-danger text-white' : 'bg-warning text-dark'
+                        }`}>
+                          {q.difficulty}
+                        </span>
+                      </div>
+                      <div className="text-dark fw-medium mb-3" style={{ whiteSpace: 'pre-line' }}>{q.content}</div>
+                      {q.answer && (
+                        <div className="p-3 bg-light rounded-3 border-start border-4 border-success">
+                          <div className="small text-success fw-bold mb-1">Hướng dẫn chấm / Đáp án:</div>
+                          <div className="text-secondary small fw-medium" style={{ whiteSpace: 'pre-line' }}>{q.answer}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-danger">Không thể tải thông tin đề thi. Vui lòng thử lại.</div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <Button variant="secondary" className="fw-bold px-4 rounded-3" onClick={() => setShowPreview(false)}>Đóng</Button>
+          {previewExam?.examSummary && (
+            <Button 
+              as={Link} 
+              to={`/de-thi/chinh-sua/${previewExam.examSummary.examId || previewExam.examSummary.examCode}`} 
+              variant="primary" 
+              className="fw-bold px-4 rounded-3"
+            >
+              Chỉnh sửa đề
+            </Button>
+          )}
+        </Modal.Footer>
+      </Modal>
+
       <style>{`
+        .card {
+          overflow: visible !important;
+        }
+        .table-responsive {
+          overflow: visible !important;
+        }
         .table thead th {
           background-color: #f1f5f9 !important;
           color: #000000 !important;
@@ -114,6 +236,14 @@ const DeThi = () => {
         }
         [data-bs-theme='dark'] .btn-light:hover {
           background-color: rgba(255, 255, 255, 0.1);
+        }
+        .clickable-code {
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+        .clickable-code:hover {
+          text-decoration: underline !important;
+          color: #0d6efd !important;
         }
       `}</style>
     </Container>

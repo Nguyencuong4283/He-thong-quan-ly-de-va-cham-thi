@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Row, Col, Card, Table, Button, Form, Badge } from 'react-bootstrap';
+import { Container, Row, Col, Card, Table, Button, Form, Badge, Modal, Spinner } from 'react-bootstrap';
 import questionApi from '../api/questionApi';
 import teacherApi from '../api/teacherApi';
 
@@ -10,6 +10,29 @@ const NganHangCauHoi = () => {
   const [filterSubject, setFilterSubject] = useState('');
   const [loading, setLoading] = useState(false);
   const [meta, setMeta] = useState({ totalQuestion: 0, amountSubject: 0 });
+
+  // Preview Modal States
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewQuestion, setPreviewQuestion] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  const handleShowPreview = async (questionId) => {
+    setShowPreview(true);
+    setPreviewLoading(true);
+    try {
+      const res = await questionApi.getQuestionById(questionId);
+      if (res && res.success) {
+        setPreviewQuestion(res.data);
+      } else {
+        setPreviewQuestion(null);
+      }
+    } catch (err) {
+      console.error('Fetch question details error', err);
+      setPreviewQuestion(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
 
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -169,7 +192,14 @@ const NganHangCauHoi = () => {
             ) : (
               filteredQuestions.map((q) => (
                 <tr key={q.id} className="align-middle border-bottom">
-                  <td className="px-4 py-3 fw-bold text-primary">{q.id}</td>
+                  <td className="px-4 py-3">
+                    <span 
+                      className="clickable-code text-primary fw-bold"
+                      onClick={() => handleShowPreview(q.id)}
+                    >
+                      {q.id}
+                    </span>
+                  </td>
                   <td className="px-4 py-3 text-dark">{q.subject}</td>
                   <td className="px-4 py-3">{getDifficultyBadge(q.difficulty)}</td>
                   <td className="px-4 py-3 text-end">
@@ -183,6 +213,74 @@ const NganHangCauHoi = () => {
           </tbody>
         </Table>
       </Card>
+
+      {/* Modal Xem trước câu hỏi */}
+      <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg" centered>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="fw-bold text-dark">Xem trước câu hỏi</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="pt-2">
+          {previewLoading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" variant="primary" className="mb-2" />
+              <div className="text-muted fw-semibold">Đang tải chi tiết câu hỏi...</div>
+            </div>
+          ) : previewQuestion ? (
+            <div>
+              {/* Thông tin chung */}
+              <div className="mb-4 p-3 bg-light rounded-3 border">
+                <div className="row g-3">
+                  <div className="col-md-4">
+                    <div className="small text-secondary fw-semibold">Môn học</div>
+                    <div className="fw-bold text-dark">{previewQuestion.subjectName || '-'}</div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="small text-secondary fw-semibold">Mã câu hỏi</div>
+                    <div className="fw-bold text-dark">{previewQuestion.questionId || '-'}</div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="small text-secondary fw-semibold">Độ khó</div>
+                    <div className="mt-1">{getDifficultyBadge(previewQuestion.difficulty)}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nội dung câu hỏi */}
+              <div className="mb-4">
+                <h6 className="fw-bold text-dark mb-2">Nội dung câu hỏi:</h6>
+                <div className="p-3 bg-white border rounded-3 text-dark fw-medium" style={{ minHeight: '80px', whiteSpace: 'pre-line' }}>
+                  {previewQuestion.content}
+                </div>
+              </div>
+
+              {/* Đáp án tham khảo */}
+              {previewQuestion.answer && (
+                <div>
+                  <h6 className="fw-bold text-success mb-2">Hướng dẫn chấm / Đáp án gợi ý:</h6>
+                  <div className="p-3 bg-light border-start border-4 border-success rounded-end text-secondary small fw-medium" style={{ whiteSpace: 'pre-line' }}>
+                    {previewQuestion.answer}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-danger">Không thể tải thông tin câu hỏi. Vui lòng thử lại.</div>
+          )}
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0">
+          <Button variant="secondary" className="fw-bold px-4 rounded-3" onClick={() => setShowPreview(false)}>Đóng</Button>
+          {previewQuestion && (
+            <Button 
+              as={Link} 
+              to={`/ngan-hang-cau-hoi/chinh-sua/${previewQuestion.questionId}`} 
+              variant="primary" 
+              className="fw-bold px-4 rounded-3"
+            >
+              Chỉnh sửa câu hỏi
+            </Button>
+          )}
+        </Modal.Footer>
+      </Modal>
 
       <style>{`
         .qbank-stat-card {
@@ -202,6 +300,14 @@ const NganHangCauHoi = () => {
         .display-4 {
           font-size: 3.5rem;
           line-height: 1;
+        }
+        .clickable-code {
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+        .clickable-code:hover {
+          text-decoration: underline !important;
+          color: #0d6efd !important;
         }
       `}</style>
     </Container>
